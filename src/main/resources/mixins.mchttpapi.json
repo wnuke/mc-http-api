@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "dev.wnuke.mchttpapi.mixins",
+  "refmap": "mixins.mchttpapi.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "verbose": false,
+  "injectors": {
+    "maxShiftBy": 2
+  },
+  "client": [
+    "MixinGameRenderer",
+    "MixinIngameGui",
+    "MixinMinecraft",
+    "MixinDeathScreen"
+  ],
+  "mixins": [
+  ]
+}

@@ -1,0 +1,97 @@
+group 'dev.wnuke'
+version '0.0.1'
+
+buildscript {
+    repositories {
+        maven {
+            name = 'forge'
+            url = 'http://files.minecraftforge.net/maven'
+        }
+        maven {
+            name = 'impactdevelopment-repo'
+            url = 'https://impactdevelopment.github.io/maven/'
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath group: 'com.github.ImpactDevelopment', name: 'ForgeGradle', version: '3.0.115'
+        classpath group: 'com.github.ImpactDevelopment', name: 'MixinGradle', version: '0.6.2'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+    options.encoding = "UTF-8"
+}
+
+sourceSets {
+    main {
+        compileClasspath += main.compileClasspath
+    }
+}
+
+task sourceJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+minecraft {
+    mappings channel: 'snapshot', version: '20200515-1.15.1'
+
+    if (getProject().hasProperty("mchttpapi.forge_build")) {
+        reobfMappings 'searge'
+    } else {
+        reobfMappings 'notch'
+    }
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name = 'spongepowered-repo'
+        url = 'http://repo.spongepowered.org/maven/'
+    }
+
+    maven {
+        name = 'impactdevelopment-repo'
+        url = 'https://impactdevelopment.github.io/maven/'
+    }
+}
+
+dependencies {
+    minecraft 'com.github.ImpactDevelopment:Vanilla:1.15.2'
+    runtime launchCompile('org.spongepowered:mixin:0.8.+') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+}
+
+mixin {
+    defaultObfuscationEnv searge
+    add sourceSets.main, 'mixins.mchttpapi.refmap.json'
+}
+
+jar {
+    from sourceSets.mchttpapi.output
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+
+    manifest {
+        attributes(
+                'MixinConfigs': 'mixins.mchttpapi.json',
+
+                'Implementation-Title': 'HTTP-API',
+                'Implementation-Version': version,
+        )
+    }
+}
