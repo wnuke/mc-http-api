@@ -3,6 +3,7 @@ package dev.wnuke.mchttpapi.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
+import dev.wnuke.mchttpapi.utils.RequestTemplates;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

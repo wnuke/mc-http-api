@@ -1,5 +1,8 @@
+import net.minecraftforge.gradle.common.util.MappingFile
+import net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace
+
 group 'dev.wnuke'
-version '0.0.1'
+version '1.0.0'
 
 buildscript {
     repositories {
@@ -67,13 +70,11 @@ repositories {
 
 dependencies {
     minecraft 'com.github.ImpactDevelopment:Vanilla:1.15.2'
-    runtime launchCompile('org.spongepowered:mixin:0.8.+') {
-        exclude module: 'launchwrapper'
-        exclude module: 'guava'
-        exclude module: 'gson'
-        exclude module: 'commons-io'
-        exclude module: 'log4j-core'
-    }
+
+    runtime implementation('org.ow2.asm:asm-debug-all:5.2')
+    runtime implementation('net.minecraft:launchwrapper:1.12')
+    runtime implementation('com.github.ImpactDevelopment:SimpleTweaker:1.2')
+    runtime implementation('org.spongepowered:mixin:0.8+')
 }
 
 mixin {
@@ -82,7 +83,7 @@ mixin {
 }
 
 jar {
-    from sourceSets.mchttpapi.output
+    from sourceSets.main.output
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 

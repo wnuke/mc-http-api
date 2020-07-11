@@ -4,8 +4,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ConnectingScreen;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.multiplayer.ServerData;
+import dev.wnuke.mchttpapi.utils.RequestTemplates;
+import dev.wnuke.mchttpapi.utils.APIPlayerStats;
 
-import static dev.wnuke.headlessapi.HeadlessAPI.*;
+import static dev.wnuke.mchttpapi.HeadlessAPI.*;
 
 
 public class MinecraftCompatLayer {

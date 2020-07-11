@@ -8,11 +8,12 @@
     "maxShiftBy": 2
   },
   "client": [
+    "MixinDeathScreen",
     "MixinGameRenderer",
     "MixinIngameGui",
-    "MixinMinecraft",
-    "MixinDeathScreen"
+    "MixinMinecraft"
   ],
   "mixins": [
+    "MixinWorldRenderer"
   ]
 }

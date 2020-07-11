@@ -3,11 +3,12 @@ package dev.wnuke.mchttpapi;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import dev.wnuke.mchttpapi.server.HTTPAPIServer;
 
 public class HeadlessAPI {
     public static ArrayList<String> chatMessages = new ArrayList<>();
     protected static APIServerThread api;
-    protected static String status;
+    public static String status;
 
     public static void startAPIServer() {
         api = new APIServerThread();

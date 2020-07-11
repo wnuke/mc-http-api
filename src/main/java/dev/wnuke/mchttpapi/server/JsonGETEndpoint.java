@@ -4,8 +4,8 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.util.Map;
 
-import static dev.wnuke.headlessapi.APIUtils.logHTTPRequest;
-import static dev.wnuke.headlessapi.APIUtils.sendOkJsonResponse;
+import static dev.wnuke.mchttpapi.utils.APIUtils.logHTTPRequest;
+import static dev.wnuke.mchttpapi.utils.APIUtils.sendOkJsonResponse;
 
 public abstract class JsonGETEndpoint {
     private final HttpServer server;

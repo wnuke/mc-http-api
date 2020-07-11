@@ -4,30 +4,30 @@ import com.google.gson.annotations.SerializedName;
 
 public class APIPlayerStats {
     @SerializedName("Username")
-    String name;
+    public String name;
     @SerializedName("UUID")
-    String uuid;
+    public String uuid;
     @SerializedName("Player")
-    PlayerInfo player;
+    public PlayerInfo player;
     @SerializedName("Coordinates")
-    Position coordinates;
+    public Position coordinates;
 
     public static class PlayerInfo {
         @SerializedName("Health")
-        float health;
+        public float health;
         @SerializedName("Hunger")
-        float hunger;
+        public float hunger;
         @SerializedName("Saturation")
-        float saturation;
+        public float saturation;
     }
 
     public static class Position {
         @SerializedName("X")
-        double x;
+        public double x;
         @SerializedName("Y")
-        double y;
+        public double y;
         @SerializedName("Z")
-        double z;
+        public double z;
 
         public Position(double x, double y, double z) {
             this.x = x;
