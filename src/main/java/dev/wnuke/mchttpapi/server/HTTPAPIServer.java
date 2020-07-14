@@ -3,35 +3,33 @@ package dev.wnuke.mchttpapi.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
+import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import dev.wnuke.mchttpapi.utils.Pair;
 import dev.wnuke.mchttpapi.utils.RequestTemplates;
-import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import static dev.wnuke.mchttpapi.HeadlessAPI.*;
-import static dev.wnuke.mchttpapi.utils.MinecraftCompatLayer.*;
 
 public class HTTPAPIServer {
     private static final Gson gson = new GsonBuilder().serializeNulls().create();
+    private final MinecraftCompatLayer mc = new MinecraftCompatLayer();
 
     public HTTPAPIServer() throws IOException {
-        System.out.println(Minecraft.getInstance().player);
         int serverPort = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
         new JsonGETEndpoint(server, "/chat") {
             @Override
             public Pair<String, Integer> run() {
-                getCurrentStatus();
                 return new Pair<>(gson.toJson(chatMessages), null);
             }
         };
         new JsonGETEndpoint(server, "/player") {
             @Override
             public Pair<String, Integer> run() {
-                if (getCurrentStatus()) {
-                    return new Pair<>(gson.toJson(getPlayerStats()), null);
+                if (mc.isPlayerNotNull()) {
+                    return new Pair<>(gson.toJson(mc.getPlayerStats()), null);
                 }
                 return new Pair<>(null, 500);
             }
@@ -39,7 +37,11 @@ public class HTTPAPIServer {
         new JsonGETEndpoint(server, "/status") {
             @Override
             public Pair<String, Integer> run() {
-                getCurrentStatus();
+                if (mc.isPlayerNotNull()) {
+                    status = "PLAYER READY";
+                } else {
+                    status = "PLAYER NOT READY";
+                }
                 return new Pair<>(gson.toJson(status), null);
             }
         };
@@ -50,7 +52,7 @@ public class HTTPAPIServer {
                 if (chatMessage.message == null) {
                     return 400;
                 } else {
-                    if (sendChatMessage(chatMessage.message)) return 200;
+                    if (mc.sendChatMessage(chatMessage.message)) return 200;
                     else return 500;
                 }
             }
@@ -58,19 +60,23 @@ public class HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/connect", true) {
             @Override
             public int run(String data) {
-                disconnectFromServer();
+                mc.disconnectFromServer();
                 RequestTemplates.ServerConnect serverConnect = gson.fromJson(data, RequestTemplates.ServerConnect.class);
                 if (serverConnect == null || serverConnect.address == null) return 400;
                 if (serverConnect.port == null) serverConnect.port = 25565;
-                connectToServer(serverConnect);
-                return 200;
+                if (mc.connectToServer(serverConnect)) {
+                    return 200;
+                }
+                return 500;
             }
         };
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {
-                disconnectFromServer();
-                return 200;
+                if (mc.disconnectFromServer()) {
+                    return 200;
+                }
+                return 500;
             }
         };
         new JsonPOSTEndpoint(server, "/posttest", false) {
@@ -83,6 +89,8 @@ public class HTTPAPIServer {
         new JsonGETEndpoint(server, "/gettest") {
             @Override
             public Pair<String, Integer> run() {
+                System.out.println("Checking status...");
+                mc.isPlayerNotNull();
                 System.out.println("Test recieved!");
                 return new Pair<>("Test recieved!", null);
             }
