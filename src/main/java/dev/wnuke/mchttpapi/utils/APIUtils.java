@@ -24,9 +24,9 @@ public class APIUtils {
         }
     }
 
-    public static void logHTTPRequest(HttpExchange he, boolean end) {
+    public static void logHTTPRequest(String uri, boolean end) {
         if (end) System.out.println("HTTP Exchanged closed.");
-        else System.out.println("HTTP Exchanged opened with URI \"" + he.getRequestURI().getRawPath() + "\"");
+        else System.out.println("HTTP Exchanged opened with URI \"" + uri + "\"");
     }
 
     public static void sendOkJsonResponse(String message, HttpExchange httpExchange) throws IOException {

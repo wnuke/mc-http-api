@@ -17,7 +17,7 @@ public abstract class JsonPOSTEndpoint {
 
     public void createContext(boolean needsData) {
         server.createContext(path, (he -> {
-            logHTTPRequest(he, false);
+            logHTTPRequest(he.getRequestURI().getPath(), false);
             if ("POST".equals(he.getRequestMethod())) {
                 if (needsData) {
                     if (he.getRequestHeaders().containsKey("Content-Type")) {
@@ -26,11 +26,13 @@ public abstract class JsonPOSTEndpoint {
                         } else he.sendResponseHeaders(415, -1);
                     } else he.sendResponseHeaders(400, -1);
                 } else he.sendResponseHeaders(run(""), -1);
-            } else he.sendResponseHeaders(405, -1);
-            logHTTPRequest(he, true);
+            } else {
+                he.sendResponseHeaders(405, -1);
+            }
+            logHTTPRequest(he.getRequestURI().getPath(), true);
             he.close();
         }));
     }
 
-    abstract int run(String data);
+    public abstract int run(String data);
 }

@@ -1,6 +1,7 @@
 package dev.wnuke.mchttpapi.server;
 
 import com.sun.net.httpserver.HttpServer;
+import dev.wnuke.mchttpapi.utils.Pair;
 
 import java.util.Map;
 
@@ -19,17 +20,25 @@ public abstract class JsonGETEndpoint {
 
     public void createContext() {
         server.createContext(path, (he -> {
-            logHTTPRequest(he, false);
+            logHTTPRequest(he.getRequestURI().getPath(), false);
             if ("GET".equals(he.getRequestMethod())) {
-                Map.Entry<String, Integer> result = run();
-                if (result.getValue() != null) he.sendResponseHeaders(result.getValue(), -1);
-                else if (result.getKey() != null) sendOkJsonResponse(result.getKey(), he);
-                else he.sendResponseHeaders(500, -1);
-            } else he.sendResponseHeaders(405, -1);
-            logHTTPRequest(he, true);
+                Pair<String, Integer> result = run();
+                if (result.getSecond() != null) {
+                    he.sendResponseHeaders(result.getSecond(), -1);
+                }
+                else if (result.getFirst() != null) {
+                    sendOkJsonResponse(result.getFirst(), he);
+                }
+                else {
+                    he.sendResponseHeaders(500, -1);
+                }
+            } else {
+                he.sendResponseHeaders(405, -1);
+            }
+            logHTTPRequest(he.getRequestURI().getPath(), true);
             he.close();
         }));
     }
 
-    abstract Map.Entry<String, Integer> run();
+    public abstract Pair<String, Integer> run();
 }
