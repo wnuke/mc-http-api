@@ -6,45 +6,40 @@ import com.sun.net.httpserver.HttpServer;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import dev.wnuke.mchttpapi.utils.Pair;
 import dev.wnuke.mchttpapi.utils.RequestTemplates;
-import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 
-import static dev.wnuke.mchttpapi.HeadlessAPI.*;
+import static dev.wnuke.mchttpapi.HeadlessAPI.chatMessages;
+import static dev.wnuke.mchttpapi.HeadlessAPI.status;
 
 public class HTTPAPIServer {
     private static final Gson gson = new GsonBuilder().serializeNulls().create();
-    private final MinecraftCompatLayer mc = new MinecraftCompatLayer();
 
-    public HTTPAPIServer() throws IOException {
+    public HTTPAPIServer(MinecraftCompatLayer compatLayer) throws IOException {
         int serverPort = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
         new JsonGETEndpoint(server, "/chat") {
             @Override
             public Pair<String, Integer> run() {
-                return new Pair<>(gson.toJson(chatMessages), null);
+                return new Pair<>(gson.toJson(chatMessages), 500);
             }
         };
         new JsonGETEndpoint(server, "/player") {
             @Override
             public Pair<String, Integer> run() {
-                if (mc.isPlayerNotNull()) {
-                    return new Pair<>(gson.toJson(mc.getPlayerStats()), null);
-                }
-                return new Pair<>(null, 500);
+                return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), 500);
             }
         };
         new JsonGETEndpoint(server, "/status") {
             @Override
             public Pair<String, Integer> run() {
-                if (mc.isPlayerNotNull()) {
+                if (compatLayer.playerNotNull()) {
                     status = "PLAYER READY";
                 } else {
                     status = "PLAYER NOT READY";
                 }
-                return new Pair<>(gson.toJson(status), null);
+                return new Pair<>(gson.toJson(status), 500);
             }
         };
         new JsonPOSTEndpoint(server, "/sendmsg", true) {
@@ -54,7 +49,7 @@ public class HTTPAPIServer {
                 if (chatMessage.message == null) {
                     return 400;
                 } else {
-                    if (mc.sendChatMessage(chatMessage.message)) return 200;
+                    if (compatLayer.sendChatMessage(chatMessage.message)) return 200;
                     else return 500;
                 }
             }
@@ -62,11 +57,11 @@ public class HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/connect", true) {
             @Override
             public int run(String data) {
-                mc.disconnectFromServer();
+                compatLayer.disconnectFromServer();
                 RequestTemplates.ServerConnect serverConnect = gson.fromJson(data, RequestTemplates.ServerConnect.class);
                 if (serverConnect == null || serverConnect.address == null) return 400;
                 if (serverConnect.port == null) serverConnect.port = 25565;
-                if (mc.connectToServer(serverConnect)) {
+                if (compatLayer.connectToServer(serverConnect)) {
                     return 200;
                 }
                 return 500;
@@ -75,7 +70,7 @@ public class HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {
-                if (mc.disconnectFromServer()) {
+                if (compatLayer.disconnectFromServer()) {
                     return 200;
                 }
                 return 500;
@@ -84,17 +79,13 @@ public class HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/posttest", false) {
             @Override
             public int run(String data) {
-                System.out.println("Test recieved!");
                 return 200;
             }
         };
         new JsonGETEndpoint(server, "/gettest") {
             @Override
             public Pair<String, Integer> run() {
-                System.out.println("Checking status...");
-                mc.isPlayerNotNull();
-                System.out.println("Test recieved!");
-                return new Pair<>(Arrays.toString(Minecraft.class.getDeclaredFields()), null);
+                return new Pair<>("Test recieved!", 500);
             }
         };
         server.setExecutor(null);

@@ -1,24 +1,19 @@
 package dev.wnuke.mchttpapi;
 
 
+import dev.wnuke.mchttpapi.server.HTTPAPIServer;
+import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import dev.wnuke.mchttpapi.server.HTTPAPIServer;
-import net.minecraft.client.Minecraft;
 
 public class HeadlessAPI {
     public static ArrayList<String> chatMessages = new ArrayList<>();
-    protected static APIServerThread api;
     public static String status;
-    public static Minecraft minecraft;
+    protected static APIServerThread api;
 
-    public HeadlessAPI(Minecraft minecraft) {
-        HeadlessAPI.minecraft = minecraft;
-        startAPIServer();
-    }
-
-    public void startAPIServer() {
-        api = new APIServerThread();
+    public static void startAPIServer(MinecraftCompatLayer compatLayer) {
+        api = new APIServerThread(compatLayer);
         api.start();
         System.out.println("---------------------------------");
         System.out.println("*                               *");
@@ -30,10 +25,17 @@ public class HeadlessAPI {
     public static class APIServerThread extends Thread {
         public HTTPAPIServer server;
 
+        public MinecraftCompatLayer compatLayer;
+
+        public APIServerThread(MinecraftCompatLayer compatLayer) {
+            this.setName("HTTP-API");
+            this.compatLayer = compatLayer;
+        }
+
         @Override
         public void run() {
             try {
-                server = new HTTPAPIServer();
+                server = new HTTPAPIServer(compatLayer);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

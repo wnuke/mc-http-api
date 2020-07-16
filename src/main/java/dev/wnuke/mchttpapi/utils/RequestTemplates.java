@@ -14,6 +14,7 @@ public class RequestTemplates {
             if (address == null) address = "localhost";
         }
     }
+
     public static class ChatMessage {
         @SerializedName("message")
         public String message;

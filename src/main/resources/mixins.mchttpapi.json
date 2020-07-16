@@ -4,14 +4,15 @@
   "refmap": "mixins.mchttpapi.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "verbose": false,
+  "minVersion": "0.7.11",
   "injectors": {
     "maxShiftBy": 2
   },
   "client": [
     "MixinDeathScreen",
-    "MixinMinecraft",
     "MixinGameRenderer",
     "MixinIngameGui",
+    "MixinMinecraft",
     "MixinWorldRenderer"
   ],
   "mixins": [

@@ -15,8 +15,16 @@ public class Pair<K, V> {
         return first;
     }
 
+    public void setFirst(K first) {
+        this.first = first;
+    }
+
     public V getSecond() {
         return second;
+    }
+
+    public void setSecond(V second) {
+        this.second = second;
     }
 
     @Override
@@ -39,13 +47,5 @@ public class Pair<K, V> {
     @Override
     public int hashCode() {
         return Objects.hash(getFirst(), getSecond());
-    }
-
-    public void setSecond(V second) {
-        this.second = second;
-    }
-
-    public void setFirst(K first) {
-        this.first = first;
     }
 }

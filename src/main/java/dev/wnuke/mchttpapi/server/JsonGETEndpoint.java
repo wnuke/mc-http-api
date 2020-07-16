@@ -3,8 +3,6 @@ package dev.wnuke.mchttpapi.server;
 import com.sun.net.httpserver.HttpServer;
 import dev.wnuke.mchttpapi.utils.Pair;
 
-import java.util.Map;
-
 import static dev.wnuke.mchttpapi.utils.APIUtils.logHTTPRequest;
 import static dev.wnuke.mchttpapi.utils.APIUtils.sendOkJsonResponse;
 
@@ -23,14 +21,10 @@ public abstract class JsonGETEndpoint {
             logHTTPRequest(he.getRequestURI().getPath(), false);
             if ("GET".equals(he.getRequestMethod())) {
                 Pair<String, Integer> result = run();
-                if (result.getSecond() != null) {
+                if (result.getFirst().isEmpty()) {
                     he.sendResponseHeaders(result.getSecond(), -1);
-                }
-                else if (result.getFirst() != null) {
+                } else {
                     sendOkJsonResponse(result.getFirst(), he);
-                }
-                else {
-                    he.sendResponseHeaders(500, -1);
                 }
             } else {
                 he.sendResponseHeaders(405, -1);

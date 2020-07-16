@@ -58,7 +58,7 @@ dependencies {
 
     runtime implementation('net.minecraft:launchwrapper:1.12')
     runtime implementation('com.github.ImpactDevelopment:SimpleTweaker:1.2')
-    runtime implementation('org.spongepowered:mixin:0.8.+')
+    runtime implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT')
 }
 
 mixin {

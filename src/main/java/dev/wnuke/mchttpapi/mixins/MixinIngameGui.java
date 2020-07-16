@@ -23,6 +23,7 @@ public class MixinIngameGui {
 
         HeadlessAPI.chatMessages.add(timeStamp + " " + message.getString());
     }
+
     @Inject(method = "renderGameOverlay", at = @At("HEAD"), cancellable = true)
     public void renderGameOverlay(float partialTicks, CallbackInfo ci) {
         ci.cancel();
