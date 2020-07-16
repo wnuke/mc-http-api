@@ -13,12 +13,9 @@ import javax.annotation.Nullable;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void postInit(CallbackInfo ci) {
-        HeadlessAPI.startAPIServer();
-    }
-
+    private static HeadlessAPI headlessAPI;
     @Shadow @Nullable private NetworkManager networkManager;
+    @Shadow @Nullable private static Minecraft instance;
 
     @Inject(method = "runTick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;networkManager:Lnet/minecraft/network/NetworkManager;", ordinal = 1))
     private void runTickUpdateNetwork(CallbackInfo ci) {
@@ -29,6 +26,9 @@ public class MixinMinecraft {
 
     @Inject(method = "runTick", at = @At("HEAD"), cancellable = true)
     public void runTickCancel(CallbackInfo ci) {
+        if (headlessAPI == null) {
+            headlessAPI = new HeadlessAPI(instance);
+        }
         ci.cancel();
     }
 }

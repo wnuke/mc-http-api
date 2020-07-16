@@ -6,9 +6,11 @@ import com.sun.net.httpserver.HttpServer;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import dev.wnuke.mchttpapi.utils.Pair;
 import dev.wnuke.mchttpapi.utils.RequestTemplates;
+import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 import static dev.wnuke.mchttpapi.HeadlessAPI.*;
 
@@ -92,7 +94,7 @@ public class HTTPAPIServer {
                 System.out.println("Checking status...");
                 mc.isPlayerNotNull();
                 System.out.println("Test recieved!");
-                return new Pair<>("Test recieved!", null);
+                return new Pair<>(Arrays.toString(Minecraft.class.getDeclaredFields()), null);
             }
         };
         server.setExecutor(null);

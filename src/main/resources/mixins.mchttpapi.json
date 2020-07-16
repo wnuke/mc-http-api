@@ -9,11 +9,11 @@
   },
   "client": [
     "MixinDeathScreen",
+    "MixinMinecraft",
     "MixinGameRenderer",
     "MixinIngameGui",
-    "MixinMinecraft"
+    "MixinWorldRenderer"
   ],
   "mixins": [
-    "MixinWorldRenderer"
   ]
 }

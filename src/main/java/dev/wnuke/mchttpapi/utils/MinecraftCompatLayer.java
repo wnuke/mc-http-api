@@ -1,30 +1,25 @@
 package dev.wnuke.mchttpapi.utils;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ConnectingScreen;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.multiplayer.ServerData;
 
+import static dev.wnuke.mchttpapi.HeadlessAPI.minecraft;
+
 
 public class MinecraftCompatLayer {
-    private Minecraft mc;
-
-    public MinecraftCompatLayer() {
-        mc = Minecraft.getInstance();
-    }
-
     public APIPlayerStats getPlayerStats() {
         try {
             if (isPlayerNotNull()) {
                 APIPlayerStats stats = new APIPlayerStats();
-                assert mc.player != null;
-                stats.name = mc.player.getName().getString();
-                stats.uuid = mc.player.getUniqueID().toString();
+                assert minecraft.player != null;
+                stats.name = minecraft.player.getName().getString();
+                stats.uuid = minecraft.player.getUniqueID().toString();
                 stats.player = new APIPlayerStats.PlayerInfo();
-                stats.player.health = mc.player.getHealth();
-                stats.player.hunger = mc.player.getFoodStats().getFoodLevel();
-                stats.player.saturation = mc.player.getFoodStats().getSaturationLevel();
-                stats.coordinates = new APIPlayerStats.Position(mc.player.getPosX(), mc.player.getPosY(), mc.player.getPosZ());
+                stats.player.health = minecraft.player.getHealth();
+                stats.player.hunger = minecraft.player.getFoodStats().getFoodLevel();
+                stats.player.saturation = minecraft.player.getFoodStats().getSaturationLevel();
+                stats.coordinates = new APIPlayerStats.Position(minecraft.player.getPosX(), minecraft.player.getPosY(), minecraft.player.getPosZ());
                 return stats;
             }
         } catch (Exception e) {
@@ -35,12 +30,8 @@ public class MinecraftCompatLayer {
 
     public boolean isPlayerNotNull() {
         try {
-            if (mc != null) {
-                if (mc.player != null) {
-                    return true;
-                }
-            } else {
-                mc = Minecraft.getInstance();
+            if (minecraft.player != null) {
+                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -51,8 +42,8 @@ public class MinecraftCompatLayer {
     public boolean sendChatMessage(String message) {
         try {
             if (isPlayerNotNull()) {
-                assert mc.player != null;
-                mc.player.sendChatMessage(message);
+                assert minecraft.player != null;
+                minecraft.player.sendChatMessage(message);
                 return true;
             }
         } catch (Exception e) {
@@ -63,11 +54,11 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            if (mc.world != null) {
-                mc.world.sendQuittingDisconnectingPacket();
+            if (minecraft.world != null) {
+                minecraft.world.sendQuittingDisconnectingPacket();
             }
-            if (mc.getConnection() != null) {
-                mc.getConnection().getNetworkManager().handleDisconnection();
+            if (minecraft.getConnection() != null) {
+                minecraft.getConnection().getNetworkManager().handleDisconnection();
             }
             return true;
         } catch (Exception e) {
@@ -78,8 +69,8 @@ public class MinecraftCompatLayer {
 
     public boolean connectToServer(RequestTemplates.ServerConnect server) {
         try {
-            mc.setServerData(new ServerData("server", server.address, false));
-            mc.execute(() -> mc.displayGuiScreen(new ConnectingScreen(new MainMenuScreen(), mc, server.address, server.port)));
+            minecraft.setServerData(new ServerData("server", server.address, false));
+            minecraft.execute(() -> minecraft.displayGuiScreen(new ConnectingScreen(new MainMenuScreen(), minecraft, server.address, server.port)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
