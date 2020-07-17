@@ -8,10 +8,10 @@
   },
   "client": [
     "MixinDeathScreen",
-    "MixinGameRenderer",
-    "MixinInGameHud",
-    "MixinWorldRenderer"
+    "MixinInGameHud"
   ],
   "mixins": [
+    "MixinGameRenderer",
+    "MixinWorldRenderer"
   ]
 }

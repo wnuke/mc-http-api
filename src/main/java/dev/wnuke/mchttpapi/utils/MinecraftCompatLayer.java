@@ -1,10 +1,10 @@
 package dev.wnuke.mchttpapi.utils;
 
-import dev.wnuke.mchttpapi.HeadlessAPI;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ServerInfo;
+
 
 public class MinecraftCompatLayer {
     private final MinecraftClient minecraft;
@@ -19,8 +19,10 @@ public class MinecraftCompatLayer {
 
     public void respawn() {
         if (playerNotNull()) {
-            assert this.minecraft.player != null;
-            this.minecraft.player.requestRespawn();
+            this.minecraft.execute(() -> {
+                assert this.minecraft.player != null;
+                this.minecraft.player.requestRespawn();
+            });
         }
     }
 
@@ -46,8 +48,11 @@ public class MinecraftCompatLayer {
 
     public boolean sendChatMessage(String message) {
         try {
-            if (this.minecraft.player != null) {
-                this.minecraft.player.sendChatMessage(message);
+            if (playerNotNull()) {
+                this.minecraft.execute(() -> {
+                    assert this.minecraft.player != null;
+                    this.minecraft.player.sendChatMessage(message);
+                });
                 return true;
             }
         } catch (Exception e) {
@@ -58,7 +63,7 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            this.minecraft.disconnect();
+            this.minecraft.execute(this.minecraft::disconnect);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,8 +73,9 @@ public class MinecraftCompatLayer {
 
     public boolean connectToServer(RequestTemplates.ServerConnect server) {
         try {
-            this.minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
-            this.minecraft.execute(() -> this.minecraft.openScreen(new ConnectScreen(new TitleScreen(), this.minecraft, server.address, server.port)));
+            ServerInfo serverInfo = new ServerInfo("server", server.address, false);
+            this.minecraft.setCurrentServerEntry(serverInfo);
+            this.minecraft.execute(() -> this.minecraft.openScreen(new ConnectScreen(new TitleScreen(), this.minecraft, serverInfo)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
