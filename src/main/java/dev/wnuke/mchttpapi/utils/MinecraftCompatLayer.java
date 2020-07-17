@@ -1,15 +1,15 @@
 package dev.wnuke.mchttpapi.utils;
 
 import dev.wnuke.mchttpapi.HeadlessAPI;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.ConnectingScreen;
-import net.minecraft.client.gui.screen.MainMenuScreen;
-import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ConnectScreen;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.network.ServerInfo;
 
 public class MinecraftCompatLayer {
-    private final Minecraft minecraft;
+    private final MinecraftClient minecraft;
 
-    public MinecraftCompatLayer(Minecraft minecraft) {
+    public MinecraftCompatLayer(MinecraftClient minecraft) {
         System.out.println("Loading HeadlessAPI v1.0.0 by wnuke...");
         this.minecraft = minecraft;
         if (this.minecraft != null) {
@@ -23,18 +23,25 @@ public class MinecraftCompatLayer {
         return this.minecraft.player != null;
     }
 
+    public void respawn() {
+        if (playerNotNull()) {
+            assert this.minecraft.player != null;
+            this.minecraft.player.requestRespawn();
+        }
+    }
+
     public APIPlayerStats getPlayerStats() {
         try {
             if (playerNotNull()) {
                 APIPlayerStats stats = new APIPlayerStats();
                 assert this.minecraft.player != null;
-                stats.name = this.minecraft.player.getName().getString();
-                stats.uuid = this.minecraft.player.getUniqueID().toString();
+                stats.name = this.minecraft.player.getName().asString();
+                stats.uuid = this.minecraft.player.getUuidAsString();
                 stats.player = new APIPlayerStats.PlayerInfo();
                 stats.player.health = this.minecraft.player.getHealth();
-                stats.player.hunger = this.minecraft.player.getFoodStats().getFoodLevel();
-                stats.player.saturation = this.minecraft.player.getFoodStats().getSaturationLevel();
-                stats.coordinates = new APIPlayerStats.Position(this.minecraft.player.getPosX(), this.minecraft.player.getPosY(), this.minecraft.player.getPosZ());
+                stats.player.hunger = this.minecraft.player.getHungerManager().getFoodLevel();
+                stats.player.saturation = this.minecraft.player.getHungerManager().getSaturationLevel();
+                stats.coordinates = new APIPlayerStats.Position(this.minecraft.player.getX(), this.minecraft.player.getY(), this.minecraft.player.getZ());
                 return stats;
             }
         } catch (Exception e) {
@@ -57,12 +64,7 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            if (this.minecraft.world != null) {
-                this.minecraft.world.sendQuittingDisconnectingPacket();
-            }
-            if (this.minecraft.getConnection() != null) {
-                this.minecraft.getConnection().getNetworkManager().handleDisconnection();
-            }
+            this.minecraft.disconnect();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,8 +74,8 @@ public class MinecraftCompatLayer {
 
     public boolean connectToServer(RequestTemplates.ServerConnect server) {
         try {
-            this.minecraft.setServerData(new ServerData("server", server.address, false));
-            this.minecraft.execute(() -> this.minecraft.displayGuiScreen(new ConnectingScreen(new MainMenuScreen(), this.minecraft, server.address, server.port)));
+            this.minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
+            this.minecraft.execute(() -> this.minecraft.openScreen(new ConnectScreen(new TitleScreen(), this.minecraft, server.address, server.port)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();

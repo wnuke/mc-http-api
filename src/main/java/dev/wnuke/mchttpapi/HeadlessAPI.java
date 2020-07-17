@@ -3,14 +3,22 @@ package dev.wnuke.mchttpapi;
 
 import dev.wnuke.mchttpapi.server.HTTPAPIServer;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
+import net.fabricmc.api.ModInitializer;
+import net.minecraft.client.MinecraftClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class HeadlessAPI {
+public class HeadlessAPI implements ModInitializer {
     public static ArrayList<String> chatMessages = new ArrayList<>();
     public static String status;
     protected static APIServerThread api;
+    public static MinecraftCompatLayer compatLayer;
+
+    public void onInitialize() {
+        compatLayer = new MinecraftCompatLayer(MinecraftClient.getInstance());
+        startAPIServer(compatLayer);
+    }
 
     public static void startAPIServer(MinecraftCompatLayer compatLayer) {
         api = new APIServerThread(compatLayer);
