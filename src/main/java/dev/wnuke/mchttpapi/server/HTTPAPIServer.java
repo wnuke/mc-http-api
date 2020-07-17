@@ -3,20 +3,21 @@ package dev.wnuke.mchttpapi.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
+import dev.wnuke.mchttpapi.HeadlessAPI;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import dev.wnuke.mchttpapi.utils.Pair;
 import dev.wnuke.mchttpapi.utils.RequestTemplates;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import static dev.wnuke.mchttpapi.HeadlessAPI.chatMessages;
-import static dev.wnuke.mchttpapi.HeadlessAPI.status;
+import static dev.wnuke.mchttpapi.HeadlessAPI.*;
 
 public class HTTPAPIServer {
-    private static final Gson gson = new GsonBuilder().serializeNulls().create();
+    public static final Gson gson = new GsonBuilder().serializeNulls().create();
 
-    public HTTPAPIServer(MinecraftCompatLayer compatLayer) throws IOException {
+    public static void httpServer(MinecraftCompatLayer compatLayer) throws IOException {
         int serverPort = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
         new JsonGETEndpoint(server, "/chat") {
@@ -31,13 +32,19 @@ public class HTTPAPIServer {
                 return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), 500);
             }
         };
+        new JsonGETEndpoint(server, "/isrendering") {
+            @Override
+            public Pair<String, Integer> run() {
+                return new Pair<>(gson.toJson(!HeadlessAPI.disableRender), 500);
+            }
+        };
         new JsonGETEndpoint(server, "/status") {
             @Override
             public Pair<String, Integer> run() {
                 if (compatLayer.playerNotNull()) {
-                    status = "PLAYER READY";
+                    status = "PLAYER IS NOT NULL";
                 } else {
-                    status = "PLAYER NOT READY";
+                    status = "PLAYER IS NULL";
                 }
                 return new Pair<>(gson.toJson(status), 500);
             }
@@ -72,6 +79,22 @@ public class HTTPAPIServer {
             public int run(String data) {
                 if (compatLayer.disconnectFromServer()) {
                     return 200;
+                }
+                return 500;
+            }
+        };
+        new JsonPOSTEndpoint(server, "/togglerender", false) {
+            @Override
+            public int run(String data) {
+                try {
+                    HeadlessAPI.disableRender = !HeadlessAPI.disableRender;
+                    FileWriter fileWriter = new FileWriter(configFile);
+                    fileWriter.write(gson.toJson(disableRender));
+                    fileWriter.flush();
+                    fileWriter.close();
+                    return 200;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 return 500;
             }

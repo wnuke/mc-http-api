@@ -1,6 +1,0 @@
-{
-    "pack": {
-        "description": "An HTTP API for controlling Minecraft.",
-        "pack_format": 5
-    }
-}
