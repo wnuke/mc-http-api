@@ -16,6 +16,7 @@ public class HeadlessAPI implements ModInitializer {
     public static MinecraftCompatLayer compatLayer;
 
     public void onInitialize() {
+        System.out.println("Loading HeadlessAPI v1.0.0 by wnuke...");
         compatLayer = new MinecraftCompatLayer(MinecraftClient.getInstance());
         startAPIServer(compatLayer);
     }

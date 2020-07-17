@@ -3,7 +3,6 @@
   "package": "dev.wnuke.mchttpapi.mixins",
   "compatibilityLevel": "JAVA_8",
   "verbose": false,
-  "minVersion": "0.8.1",
   "injectors": {
     "maxShiftBy": 2
   },

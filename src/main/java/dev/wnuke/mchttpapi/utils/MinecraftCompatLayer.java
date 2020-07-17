@@ -10,13 +10,7 @@ public class MinecraftCompatLayer {
     private final MinecraftClient minecraft;
 
     public MinecraftCompatLayer(MinecraftClient minecraft) {
-        System.out.println("Loading HeadlessAPI v1.0.0 by wnuke...");
         this.minecraft = minecraft;
-        if (this.minecraft != null) {
-            HeadlessAPI.startAPIServer(this);
-        } else {
-            System.out.println("HeadlessAPI failed to load.");
-        }
     }
 
     public boolean playerNotNull() {
