@@ -2,42 +2,50 @@ package dev.wnuke.mchttpapi.utils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConnectScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ServerInfo;
 
 
 public class MinecraftCompatLayer {
-    private final MinecraftClient minecraft;
+    private static MinecraftClient minecraft;
 
     public MinecraftCompatLayer(MinecraftClient minecraft) {
-        this.minecraft = minecraft;
+        MinecraftCompatLayer.minecraft = minecraft;
+    }
+
+    public static MinecraftClient getMinecraft() {
+        return minecraft;
     }
 
     public boolean playerNotNull() {
-        return this.minecraft.player != null;
+        if (minecraft.player != null) {
+            respawn();
+            return true;
+        }
+        return false;
     }
 
     public void respawn() {
-        if (playerNotNull()) {
-            this.minecraft.execute(() -> {
-                assert this.minecraft.player != null;
-                this.minecraft.player.requestRespawn();
-            });
-        }
+        minecraft.execute(() -> {
+            assert minecraft.player != null;
+            minecraft.player.requestRespawn();
+            minecraft.openScreen(null);
+        });
     }
 
     public APIPlayerStats getPlayerStats() {
         try {
             if (playerNotNull()) {
                 APIPlayerStats stats = new APIPlayerStats();
-                assert this.minecraft.player != null;
-                stats.name = this.minecraft.player.getName().asString();
-                stats.uuid = this.minecraft.player.getUuidAsString();
+                assert minecraft.player != null;
+                stats.name = minecraft.player.getName().asString();
+                stats.uuid = minecraft.player.getUuidAsString();
                 stats.player = new APIPlayerStats.PlayerInfo();
-                stats.player.health = this.minecraft.player.getHealth();
-                stats.player.hunger = this.minecraft.player.getHungerManager().getFoodLevel();
-                stats.player.saturation = this.minecraft.player.getHungerManager().getSaturationLevel();
-                stats.coordinates = new APIPlayerStats.Position(this.minecraft.player.getX(), this.minecraft.player.getY(), this.minecraft.player.getZ());
+                stats.player.health = minecraft.player.getHealth();
+                stats.player.hunger = minecraft.player.getHungerManager().getFoodLevel();
+                stats.player.saturation = minecraft.player.getHungerManager().getSaturationLevel();
+                stats.coordinates = new APIPlayerStats.Position(minecraft.player.getX(), minecraft.player.getY(), minecraft.player.getZ());
                 return stats;
             }
         } catch (Exception e) {
@@ -49,9 +57,9 @@ public class MinecraftCompatLayer {
     public boolean sendChatMessage(String message) {
         try {
             if (playerNotNull()) {
-                this.minecraft.execute(() -> {
-                    assert this.minecraft.player != null;
-                    this.minecraft.player.sendChatMessage(message);
+                minecraft.execute(() -> {
+                    assert minecraft.player != null;
+                    minecraft.player.sendChatMessage(message);
                 });
                 return true;
             }
@@ -63,7 +71,7 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            this.minecraft.execute(this.minecraft::disconnect);
+            minecraft.execute(minecraft::disconnect);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,8 +82,8 @@ public class MinecraftCompatLayer {
     public boolean connectToServer(RequestTemplates.ServerConnect server) {
         try {
             ServerInfo serverInfo = new ServerInfo("server", server.address, false);
-            this.minecraft.setCurrentServerEntry(serverInfo);
-            this.minecraft.execute(() -> this.minecraft.openScreen(new ConnectScreen(new TitleScreen(), this.minecraft, serverInfo)));
+            minecraft.setCurrentServerEntry(serverInfo);
+            minecraft.execute(() -> minecraft.openScreen(new ConnectScreen(new TitleScreen(), minecraft, serverInfo)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
