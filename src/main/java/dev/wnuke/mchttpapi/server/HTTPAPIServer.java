@@ -38,17 +38,6 @@ public class HTTPAPIServer {
                 return new Pair<>(gson.toJson(!HeadlessAPI.disableRender), 500);
             }
         };
-        new JsonGETEndpoint(server, "/status") {
-            @Override
-            public Pair<String, Integer> run() {
-                if (compatLayer.playerNotNull()) {
-                    status = "PLAYER IS NOT NULL";
-                } else {
-                    status = "PLAYER IS NULL";
-                }
-                return new Pair<>(gson.toJson(status), 500);
-            }
-        };
         new JsonPOSTEndpoint(server, "/sendmsg", true) {
             @Override
             public int run(String data) {
@@ -97,18 +86,6 @@ public class HTTPAPIServer {
                     e.printStackTrace();
                 }
                 return 500;
-            }
-        };
-        new JsonPOSTEndpoint(server, "/posttest", false) {
-            @Override
-            public int run(String data) {
-                return 200;
-            }
-        };
-        new JsonGETEndpoint(server, "/gettest") {
-            @Override
-            public Pair<String, Integer> run() {
-                return new Pair<>("Test recieved!", 500);
             }
         };
         server.setExecutor(null);
