@@ -24,7 +24,7 @@ public class MixinInGameHud {
                 .withZone(ZoneOffset.UTC)
                 .format(Instant.now());
 
-        HeadlessAPI.chatMessages.add(timeStamp + " " + text.getString());
+        HeadlessAPI.chatMessages.add(timeStamp + " " + text.getString().replaceAll("§([a-f]|k|l|m|n|o|r|[0-9])", ""));
     }
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
