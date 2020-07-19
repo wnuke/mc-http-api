@@ -6,14 +6,14 @@ POST http://localhost:8000/disconnect
 
 ###
 
-POST http://localhost:8000/sendmsg
+POST http://localhost:8003/sendmsg
 Content-Type: application/json
 
 {"message": "@explore"}
 
 ###
 
-POST http://localhost:8000/connect
+POST http://localhost:8003/connect
 Content-Type: application/json
 
 {
