@@ -2,7 +2,6 @@ package dev.wnuke.mchttpapi.utils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConnectScreen;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ServerInfo;
 
@@ -12,10 +11,6 @@ public class MinecraftCompatLayer {
 
     public MinecraftCompatLayer(MinecraftClient minecraft) {
         MinecraftCompatLayer.minecraft = minecraft;
-    }
-
-    public static MinecraftClient getMinecraft() {
-        return minecraft;
     }
 
     public boolean playerNotNull() {
