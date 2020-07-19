@@ -87,22 +87,6 @@ public class HTTPAPIServer {
                 return 500;
             }
         };
-        new JsonPOSTEndpoint(server, "/togglerender", false) {
-            @Override
-            public int run(String data) {
-                try {
-                    HeadlessAPI.disableRender = !HeadlessAPI.disableRender;
-                    FileWriter fileWriter = new FileWriter(configFile);
-                    fileWriter.write(gson.toJson(disableRender));
-                    fileWriter.flush();
-                    fileWriter.close();
-                    return 200;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return 500;
-            }
-        };
         server.setExecutor(null);
         server.start();
     }
