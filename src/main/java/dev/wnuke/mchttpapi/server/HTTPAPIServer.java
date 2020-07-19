@@ -68,6 +68,16 @@ public class HTTPAPIServer {
                 return 500;
             }
         };
+        new JsonPOSTEndpoint(server, "/login", true) {
+            @Override
+            public int run(String data) {
+                RequestTemplates.Login loginData = gson.fromJson(data, RequestTemplates.Login.class);
+                if (compatLayer.login(loginData)) {
+                    return 200;
+                }
+                return 500;
+            }
+        };
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {

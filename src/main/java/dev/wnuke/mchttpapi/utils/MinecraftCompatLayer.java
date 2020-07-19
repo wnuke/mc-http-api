@@ -1,9 +1,18 @@
 package dev.wnuke.mchttpapi.utils;
 
+import com.mojang.authlib.Agent;
+import com.mojang.authlib.exceptions.AuthenticationException;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.util.Session;
+
+import java.lang.reflect.Field;
+import java.net.Proxy;
+import java.util.UUID;
 
 
 public class MinecraftCompatLayer {
@@ -80,6 +89,54 @@ public class MinecraftCompatLayer {
             minecraft.setCurrentServerEntry(serverInfo);
             minecraft.execute(() -> minecraft.openScreen(new ConnectScreen(new TitleScreen(), minecraft, serverInfo)));
             return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean setGameSession(Session newSession) {
+        Class<? extends MinecraftClient> minecraftClientClass = minecraft.getClass();
+        if (minecraftClientClass == null) return false;
+        Field sessionField = null;
+        for (Field field : minecraftClientClass.getDeclaredFields()) {
+            if (field.getName().equalsIgnoreCase("session") || field.getName().equalsIgnoreCase("field_1726")) {
+                sessionField = field;
+            }
+        }
+        try {
+            if (sessionField == null) return false;
+            sessionField.setAccessible(true);
+            sessionField.set(minecraft, newSession);
+            sessionField.setAccessible(false);
+            return true;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean login(RequestTemplates.Login loginData) {
+        try {
+            if (loginData.username == null || loginData.username.isEmpty()) {
+                return false;
+            } else if (loginData.password == null || loginData.password.isEmpty()) {
+                Session offlineSession = new Session(loginData.username,
+                        UUID.nameUUIDFromBytes(loginData.username.getBytes()).toString(), "0", "legacy");
+                return setGameSession(offlineSession);
+            } else {
+                YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication) new YggdrasilAuthenticationService(Proxy.NO_PROXY, "").createUserAuthentication(Agent.MINECRAFT);
+                auth.setUsername(loginData.username);
+                auth.setPassword(loginData.password);
+                try {
+                    auth.logIn();
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+                Session onlineSession = new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
+                return setGameSession(onlineSession);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
