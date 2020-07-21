@@ -18,13 +18,7 @@ public class HTTPAPIServer {
     public static final Gson gson = new GsonBuilder().serializeNulls().create();
 
     public static void httpServer(MinecraftCompatLayer compatLayer) throws IOException {
-        int serverPort;
-        try {
-            serverPort = Integer.parseInt(System.getProperty("httpapiserverport"));
-        } catch (NumberFormatException e) {
-            serverPort = 8000;
-        }
-        HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
         new JsonGETEndpoint(server, "/chat") {
             @Override
             public Pair<String, Integer> run() {
@@ -35,12 +29,6 @@ public class HTTPAPIServer {
             @Override
             public Pair<String, Integer> run() {
                 return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), 500);
-            }
-        };
-        new JsonGETEndpoint(server, "/isrendering") {
-            @Override
-            public Pair<String, Integer> run() {
-                return new Pair<>(gson.toJson(!HeadlessAPI.disableRender), 500);
             }
         };
         new JsonPOSTEndpoint(server, "/sendmsg", true) {

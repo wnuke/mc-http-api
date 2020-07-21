@@ -29,8 +29,6 @@ public class MixinInGameHud {
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void render(MatrixStack matrixStack, float f, CallbackInfo ci) {
-        if (HeadlessAPI.disableRender) {
-            ci.cancel();
-        }
+        ci.cancel();
     }
 }

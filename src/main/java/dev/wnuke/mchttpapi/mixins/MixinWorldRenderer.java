@@ -1,6 +1,5 @@
 package dev.wnuke.mchttpapi.mixins;
 
-import dev.wnuke.mchttpapi.HeadlessAPI;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
@@ -16,8 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinWorldRenderer {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-        if (HeadlessAPI.disableRender) {
-            ci.cancel();
-        }
+        ci.cancel();
     }
 }

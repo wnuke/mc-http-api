@@ -7,8 +7,10 @@ import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.util.Session;
+import net.minecraft.realms.RealmsBridge;
 
 import java.lang.reflect.Field;
 import java.net.Proxy;
@@ -75,7 +77,10 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            minecraft.execute(minecraft::disconnect);
+            minecraft.execute(() -> {
+                minecraft.disconnect();
+                minecraft.openScreen(new MultiplayerScreen(new TitleScreen()));
+            });
             return true;
         } catch (Exception e) {
             e.printStackTrace();

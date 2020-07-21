@@ -7,9 +7,9 @@
     "maxShiftBy": 2
   },
   "client": [
-    "MixinDeathScreen",
-    "MixinInGameHud",
+    "MixinClientPlayerEntity",
     "MixinGameRenderer",
+    "MixinInGameHud",
     "MixinWorldRenderer"
   ],
   "mixins": [
