@@ -3,9 +3,9 @@ pipeline {
         docker 'gradle:latest'
     }
     stages {
-        gitlabBuilds(builds: ['build']) {
-            stage('build') {
-                steps {
+        stage('build') {
+            steps {
+                gitlabCommitStatus {
                     withGradle {
                         sh './gradlew distzip'
                     }
