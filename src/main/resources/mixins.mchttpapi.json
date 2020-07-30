@@ -7,11 +7,14 @@
     "maxShiftBy": 2
   },
   "client": [
-    "MixinClientPlayerEntity",
-    "MixinGameRenderer",
-    "MixinInGameHud",
-    "MixinWorldRenderer"
   ],
   "mixins": [
+    "MixinGameRenderer",
+    "MixinInGameHud",
+    "MixinMinecraft",
+    "MixinSplashScreen",
+    "MixinTextureManager",
+    "MixinWorldRenderer",
+    "MixinUnicodeTextureFont"
   ]
 }

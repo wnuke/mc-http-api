@@ -1,7 +1,5 @@
 package dev.wnuke.mchttpapi.utils;
 
-import com.google.gson.annotations.SerializedName;
-
 public class APIPlayerStats {
     public String name;
     public String uuid;

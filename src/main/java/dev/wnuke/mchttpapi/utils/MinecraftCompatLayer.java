@@ -79,7 +79,6 @@ public class MinecraftCompatLayer {
         try {
             minecraft.execute(() -> {
                 minecraft.disconnect();
-                minecraft.openScreen(new MultiplayerScreen(new TitleScreen()));
             });
             return true;
         } catch (Exception e) {
