@@ -5,7 +5,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                gitlabCommitStatus {
+                gitlabCommitStatus('build') {
                     withGradle {
                         sh './gradlew distzip'
                     }
