@@ -7,11 +7,13 @@ import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.Session;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkState;
 import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
 import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
+import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.util.logging.UncaughtExceptionLogger;
 
 import java.net.InetAddress;
@@ -75,9 +77,9 @@ public class MinecraftCompatLayer {
 
     public boolean sendChatMessage(String message) {
         try {
-            if (playerNotNull()) {
-                assert null != minecraft.player;
-                minecraft.player.sendChatMessage(message);
+            if (null != minecraft.player) {
+                LOGGER.info("Sending message \"{}\" as \"{}\"", message, minecraft.player.getDisplayName());
+                connection.send(new ChatMessageC2SPacket(message));
                 return true;
             }
         } catch (Exception e) {
@@ -88,7 +90,8 @@ public class MinecraftCompatLayer {
 
     public boolean disconnectFromServer() {
         try {
-            minecraft.disconnect();
+            LOGGER.info("Disconnecting from server {}", null != minecraft.getCurrentServerEntry() ? minecraft.getCurrentServerEntry().address : "");
+            disconnect();
             return true;
         } catch (Exception e) {
             LOGGER.warn(e.getLocalizedMessage());
@@ -96,9 +99,24 @@ public class MinecraftCompatLayer {
         return false;
     }
 
+    public void disconnect() {
+        if (null != minecraft.getNetworkHandler()) {
+            minecraft.getNetworkHandler().clearWorld();
+        }
+        minecraft.gameRenderer.reset();
+        NarratorManager.INSTANCE.clear();
+        minecraft.inGameHud.clear();
+        minecraft.interactionManager = null;
+        NarratorManager.INSTANCE.clear();
+        minecraft.setCurrentServerEntry(null);
+        minecraft.getGame().onLeaveGameSession();
+        minecraft.world = null;
+        minecraft.player = null;
+    }
+
     public boolean connectToServer(ServerConnect server) {
         try {
-            minecraft.disconnect();
+            disconnect();
             minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
             String address = server.address;
             Integer port = server.port;
@@ -108,17 +126,19 @@ public class MinecraftCompatLayer {
             Thread thread = new Thread("Server Connector #" + CONNECTOR_THREADS_COUNT.incrementAndGet()) {
                 public void run() {
                     try {
+                        LOGGER.info("Connecting to {}:{}.", address, port);
                         InetAddress inetAddress = InetAddress.getByName(address);
                         connection = ClientConnection.connect(inetAddress, port, true);
                         connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> { }));
                         connection.send(new HandshakeC2SPacket(address, port, NetworkState.LOGIN));
                         connection.send(new LoginHelloC2SPacket(sessionToUse.getProfile()));
+                        LOGGER.info("Connected.");
                     } catch (UnknownHostException e) {
                         LOGGER.error("Connection to server failed. (Unknown Host)");
-                        minecraft.disconnect();
+                        disconnect();
                     } catch (Exception e) {
                         LOGGER.error("Connection to server failed.", e);
-                        minecraft.disconnect();
+                        disconnect();
                     }
 
                 }

@@ -1,9 +1,11 @@
 package dev.wnuke.mchttpapi.mixins;
 
 import dev.wnuke.mchttpapi.HeadlessAPI;
+import dev.wnuke.mchttpapi.utils.RunBooleanSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,44 +16,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraft {
+    private static final float TPS = 20.0F;
     @Shadow
     private ClientConnection connection;
-    private final RenderTickCounter renderTickCounter = new RenderTickCounter(20.0F, 0L);
+    private final RenderTickCounter renderTickCounter = new RenderTickCounter(TPS, 0L);
+
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void render(boolean tick, CallbackInfo ci) {
         MinecraftClient.getInstance().skipGameRender = true;
-        if (null != HeadlessAPI.compatLayer) {
-            connection = HeadlessAPI.compatLayer.connection;
+        if (null != MinecraftClient.getInstance().player && null != HeadlessAPI.compatLayer.connection) {
+            if (1.0F > MinecraftClient.getInstance().player.getHealth() || MinecraftClient.getInstance().player.isDead()) {
+                HeadlessAPI.compatLayer.connection.send(new ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.PERFORM_RESPAWN));
+                MinecraftClient.getInstance().player.requestRespawn();
+            }
         }
-        if (null != MinecraftClient.getInstance().player) {
-            MinecraftClient.getInstance().player.setShowsDeathScreen(false);
-        }
+        int k = renderTickCounter.beginRenderTick(Util.getMeasuringTimeMs());
         if (tick) {
-            int k = renderTickCounter.beginRenderTick(Util.getMeasuringTimeMs());
+            if (null != HeadlessAPI.compatLayer) {
+                connection = HeadlessAPI.compatLayer.connection;
+            }
+            MinecraftClient.getInstance().runTasks(new RunBooleanSupplier());
             for(int j = 0; j < Math.min(10, k); ++j) {
                 MinecraftClient.getInstance().tick();
             }
         }
-        ci.cancel();
-    }
-
-    @Inject(method = "setOverlay", at = @At("HEAD"), cancellable = true)
-    private void setOverlay(CallbackInfo ci) {
-        ci.cancel();
-    }
-
-    @Inject(method = "updateWindowTitle", at = @At("HEAD"), cancellable = true)
-    private void updateWindowTitle(CallbackInfo ci) {
-        ci.cancel();
     }
 
     @Inject(method = "isModded", at = @At("HEAD"), cancellable = true)
     public void setNotModded(CallbackInfoReturnable<? super Boolean> cir) {
         cir.setReturnValue(false);
-    }
-
-    @Inject(method = "getWindowTitle", at = @At("HEAD"), cancellable = true)
-    public void getWindowTitle(CallbackInfoReturnable<? super String> cir) {
-        cir.setReturnValue("minecraft");
     }
 }

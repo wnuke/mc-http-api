@@ -9,19 +9,20 @@ import java.nio.charset.StandardCharsets;
 
 import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
 
-public class APIUtils {
-
+public enum APIUtils {
+    ;
     public static String parsePost(HttpExchange he) {
         try {
             InputStream input = he.getRequestBody();
             StringBuilder sb = new StringBuilder();
-            int i;
-            while ((i = input.read()) != -1) {
+            int i = input.read();
+            while (-1L != i) {
                 sb.append((char) i);
+                i = input.read();
             }
             return sb.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
             return null;
         }
     }
@@ -29,8 +30,8 @@ public class APIUtils {
     public static void logHTTPRequest(HttpExchange he, boolean end) {
         String uri = he.getRequestURI().getPath();
         String requester = he.getRemoteAddress().getAddress().getHostAddress() + ":" + he.getRemoteAddress().getPort();
-        if (end) LOGGER.info("HTTP Exchanged with URI \"{}\" opened by {} has been closed.", uri, requester);
-        else LOGGER.info("HTTP Exchanged opened with URI \"{}\" opened by {}.", uri, requester);
+        if (end) LOGGER.info("HTTP Connection opened by {} to {} has been closed.", requester, uri);
+        else LOGGER.info("HTTP Connection opened by {} to {}.", requester, uri);
     }
 
     public static void sendOkJsonResponse(String message, HttpExchange httpExchange) throws IOException {

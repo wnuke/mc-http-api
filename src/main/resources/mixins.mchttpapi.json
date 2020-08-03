@@ -9,12 +9,13 @@
   "client": [
   ],
   "mixins": [
+    "MixinBackedModelManager",
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinMinecraft",
     "MixinSplashScreen",
     "MixinTextureManager",
-    "MixinWorldRenderer",
-    "MixinUnicodeTextureFont"
+    "MixinUnicodeTextureFont",
+    "MixinWorldRenderer"
   ]
 }
