@@ -5,50 +5,68 @@ import dev.wnuke.mchttpapi.server.HTTPAPIServer;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class HeadlessAPI implements ModInitializer {
-    public static ArrayList<String> chatMessages = new ArrayList<>();
+    public static final ArrayList<String> chatMessages = new ArrayList<>(0);
     protected static APIServerThread api;
-    public static MinecraftCompatLayer compatLayer;
+    public MinecraftCompatLayer compatLayer;
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public void onInitialize() {
-        System.out.println("Loading HeadlessAPI v1.0.0 by wnuke...");
+        LOGGER.info("Loading HeadlessAPI v1.0.0 by wnuke...");
         compatLayer = new MinecraftCompatLayer(MinecraftClient.getInstance());
         startAPIServer(compatLayer);
-        System.out.println("---------------------------------");
-        System.out.println("*                               *");
-        System.out.println("*   Headless HTTP API loaded!   *");
-        System.out.println("*                               *");
-        System.out.println("---------------------------------");
+        LOGGER.info("---------------------------------");
+        LOGGER.info("*                               *");
+        LOGGER.info("*   Headless HTTP API loaded!   *");
+        LOGGER.info("*                               *");
+        LOGGER.info("---------------------------------");
     }
 
-    public static void startAPIServer(MinecraftCompatLayer compatLayer) {
-        api = new APIServerThread(compatLayer);
+    public static void startAPIServer(MinecraftCompatLayer compatLayerToUse) {
+        api = APIServerThread.createAPIServerThread(compatLayerToUse);
         api.start();
     }
 
     public static class APIServerThread extends Thread {
-        public MinecraftCompatLayer compatLayer;
+        public MinecraftCompatLayer minecraftCompatLayer;
 
-        public APIServerThread(MinecraftCompatLayer compatLayer) {
-            this.setName("HTTP-API");
-            this.compatLayer = compatLayer;
+        private APIServerThread(MinecraftCompatLayer mcCompatLayer) {
+            setName("HTTP-API");
+            minecraftCompatLayer = mcCompatLayer;
+        }
+
+        public static APIServerThread createAPIServerThread(MinecraftCompatLayer compatLayer) {
+            return new APIServerThread(compatLayer);
         }
 
         @Override
         public void run() {
             try {
-                HTTPAPIServer.httpServer(compatLayer);
+                HTTPAPIServer.httpServer(minecraftCompatLayer);
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                LOGGER.error(ioException.getLocalizedMessage());
             }
         }
+
+        @Override
+        public String toString() {
+            return "APIServerThread{" +
+                    "minecraftCompatLayer=" + minecraftCompatLayer +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "HeadlessAPI{" +
+                "compatLayer=" + compatLayer +
+                '}';
     }
 }
 

@@ -6,25 +6,17 @@ public class Pair<K, V> {
     public K first;
     public V second;
 
-    public Pair(K first, V second) {
-        this.first = first;
-        this.second = second;
+    public Pair(K startFirst, V startSecond) {
+        first = startFirst;
+        second = startSecond;
     }
 
     public K getFirst() {
         return first;
     }
 
-    public void setFirst(K first) {
-        this.first = first;
-    }
-
     public V getSecond() {
         return second;
-    }
-
-    public void setSecond(V second) {
-        this.second = second;
     }
 
     @Override
@@ -36,16 +28,16 @@ public class Pair<K, V> {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Pair)) return false;
-        Pair<?, ?> pair = (Pair<?, ?>) o;
-        return Objects.equals(getFirst(), pair.getFirst()) &&
-                Objects.equals(getSecond(), pair.getSecond());
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Pair)) return false;
+        Pair<?, ?> pair = (Pair<?, ?>) obj;
+        return Objects.equals(first, pair.first) &&
+                Objects.equals(second, pair.second);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getFirst(), getSecond());
+        return Objects.hash(first, second);
     }
 }

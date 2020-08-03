@@ -3,43 +3,45 @@ package dev.wnuke.mchttpapi.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
-import dev.wnuke.mchttpapi.HeadlessAPI;
-import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
-import dev.wnuke.mchttpapi.utils.Pair;
-import dev.wnuke.mchttpapi.utils.RequestTemplates;
+import dev.wnuke.mchttpapi.utils.*;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import static dev.wnuke.mchttpapi.HeadlessAPI.*;
+import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
+import static dev.wnuke.mchttpapi.HeadlessAPI.chatMessages;
 
-public class HTTPAPIServer {
+public enum HTTPAPIServer {
+    ;
     public static final Gson gson = new GsonBuilder().serializeNulls().create();
+    public static final int PORT = 8000;
+    public static final int MCPORT = 25565;
 
     public static void httpServer(MinecraftCompatLayer compatLayer) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         new JsonGETEndpoint(server, "/chat") {
             @Override
             public Pair<String, Integer> run() {
-                return new Pair<>(gson.toJson(chatMessages), 500);
+                LOGGER.info("Sending chat history to ");
+                return new Pair<>(gson.toJson(chatMessages), HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
             }
         };
         new JsonGETEndpoint(server, "/player") {
             @Override
             public Pair<String, Integer> run() {
-                return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), 500);
+                return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
             }
         };
         new JsonPOSTEndpoint(server, "/sendmsg", true) {
             @Override
             public int run(String data) {
-                RequestTemplates.ChatMessage chatMessage = gson.fromJson(data, RequestTemplates.ChatMessage.class);
-                if (chatMessage.message == null) {
-                    return 400;
+                ChatMessage chatMessage = gson.fromJson(data, ChatMessage.class);
+                if (null == chatMessage.message) {
+                    return HttpResponseStatus.BAD_REQUEST.code();
                 } else {
-                    if (compatLayer.sendChatMessage(chatMessage.message)) return 200;
-                    else return 500;
+                    if (compatLayer.sendChatMessage(chatMessage.message)) return HttpResponseStatus.OK.code();
+                    else return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
                 }
             }
         };
@@ -47,32 +49,33 @@ public class HTTPAPIServer {
             @Override
             public int run(String data) {
                 compatLayer.disconnectFromServer();
-                RequestTemplates.ServerConnect serverConnect = gson.fromJson(data, RequestTemplates.ServerConnect.class);
-                if (serverConnect == null || serverConnect.address == null) return 400;
-                if (serverConnect.port == null) serverConnect.port = 25565;
+                ServerConnect serverConnect = gson.fromJson(data, ServerConnect.class);
+                if (null == serverConnect || null == serverConnect.address)
+                    return HttpResponseStatus.BAD_REQUEST.code();
+                if (null == serverConnect.port) serverConnect.port = MCPORT;
                 if (compatLayer.connectToServer(serverConnect)) {
-                    return 200;
+                    return HttpResponseStatus.OK.code();
                 }
-                return 500;
+                return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
             }
         };
         new JsonPOSTEndpoint(server, "/login", true) {
             @Override
             public int run(String data) {
-                RequestTemplates.Login loginData = gson.fromJson(data, RequestTemplates.Login.class);
+                Login loginData = gson.fromJson(data, Login.class);
                 if (compatLayer.login(loginData)) {
-                    return 200;
+                    return HttpResponseStatus.OK.code();
                 }
-                return 500;
+                return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
             }
         };
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {
                 if (compatLayer.disconnectFromServer()) {
-                    return 200;
+                    return HttpResponseStatus.OK.code();
                 }
-                return 500;
+                return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
             }
         };
         server.setExecutor(null);

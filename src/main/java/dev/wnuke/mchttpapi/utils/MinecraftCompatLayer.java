@@ -1,32 +1,46 @@
 package dev.wnuke.mchttpapi.utils;
 
 import com.mojang.authlib.Agent;
+import com.mojang.authlib.UserAuthentication;
 import com.mojang.authlib.exceptions.AuthenticationException;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
-import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ConnectScreen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.util.Session;
-import net.minecraft.realms.RealmsBridge;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.network.NetworkState;
+import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
+import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
+import net.minecraft.util.logging.UncaughtExceptionLogger;
 
-import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
 
 
 public class MinecraftCompatLayer {
-    private static MinecraftClient minecraft;
+    private static final AtomicInteger CONNECTOR_THREADS_COUNT = new AtomicInteger(0);
+    private static final Pattern COMPILE = Pattern.compile("[^A-Za-z0-9]", Pattern.LITERAL);
+    private MinecraftClient minecraft;
+    private Session session;
+    private ClientConnection connection;
 
-    public MinecraftCompatLayer(MinecraftClient minecraft) {
-        MinecraftCompatLayer.minecraft = minecraft;
+    public MinecraftCompatLayer(MinecraftClient mc) {
+        minecraft = mc;
     }
 
     public boolean playerNotNull() {
-        if (minecraft.player != null) {
-            respawn();
+        if (null != minecraft.player) {
+            if (minecraft.player.isDead()) {
+                respawn();
+            }
             return true;
         }
         return false;
@@ -34,17 +48,17 @@ public class MinecraftCompatLayer {
 
     public void respawn() {
         minecraft.execute(() -> {
-            assert minecraft.player != null;
+            assert null != minecraft.player;
             minecraft.player.requestRespawn();
             minecraft.openScreen(null);
         });
     }
 
     public APIPlayerStats getPlayerStats() {
+        APIPlayerStats stats = new APIPlayerStats();
         try {
             if (playerNotNull()) {
-                APIPlayerStats stats = new APIPlayerStats();
-                assert minecraft.player != null;
+                assert null != minecraft.player;
                 stats.name = minecraft.player.getName().asString();
                 stats.uuid = minecraft.player.getUuidAsString();
                 stats.player = new APIPlayerStats.PlayerInfo();
@@ -52,98 +66,109 @@ public class MinecraftCompatLayer {
                 stats.player.hunger = minecraft.player.getHungerManager().getFoodLevel();
                 stats.player.saturation = minecraft.player.getHungerManager().getSaturationLevel();
                 stats.coordinates = new APIPlayerStats.Position(minecraft.player.getX(), minecraft.player.getY(), minecraft.player.getZ());
-                return stats;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
         }
-        return null;
+        return stats;
     }
 
     public boolean sendChatMessage(String message) {
         try {
             if (playerNotNull()) {
-                minecraft.execute(() -> {
-                    assert minecraft.player != null;
-                    minecraft.player.sendChatMessage(message);
-                });
+                assert null != minecraft.player;
+                minecraft.player.sendChatMessage(message);
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
         }
         return false;
     }
 
     public boolean disconnectFromServer() {
         try {
-            minecraft.execute(() -> {
-                minecraft.disconnect();
-            });
+            minecraft.disconnect();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
         }
         return false;
     }
 
-    public boolean connectToServer(RequestTemplates.ServerConnect server) {
+    public boolean connectToServer(ServerConnect server) {
         try {
-            ServerInfo serverInfo = new ServerInfo("server", server.address, false);
-            minecraft.setCurrentServerEntry(serverInfo);
-            minecraft.execute(() -> minecraft.openScreen(new ConnectScreen(new TitleScreen(), minecraft, serverInfo)));
+            minecraft.disconnect();
+            minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
+            String address = server.address;
+            Integer port = server.port;
+            Session sessionToUse;
+            if (null != session) sessionToUse = session;
+            else sessionToUse = minecraft.getSession();
+            Thread thread = new Thread("Server Connector #" + CONNECTOR_THREADS_COUNT.incrementAndGet()) {
+                public void run() {
+                    try {
+                        InetAddress inetAddress = InetAddress.getByName(address);
+                        connection = ClientConnection.connect(inetAddress, port, true);
+                        connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> { }));
+                        connection.send(new HandshakeC2SPacket(address, port, NetworkState.LOGIN));
+                        connection.send(new LoginHelloC2SPacket(sessionToUse.getProfile()));
+                    } catch (UnknownHostException e) {
+                        LOGGER.error("Connection to server failed. (Unknown Host)");
+                        minecraft.disconnect();
+                    } catch (Exception e) {
+                        LOGGER.error("Connection to server failed.", e);
+                        minecraft.disconnect();
+                    }
+
+                }
+            };
+            thread.setUncaughtExceptionHandler(new UncaughtExceptionLogger(LOGGER));
+            thread.start();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
         }
         return false;
     }
 
-    public static boolean setGameSession(Session newSession) {
-        Class<? extends MinecraftClient> minecraftClientClass = minecraft.getClass();
-        if (minecraftClientClass == null) return false;
-        Field sessionField = null;
-        for (Field field : minecraftClientClass.getDeclaredFields()) {
-            if (field.getName().equalsIgnoreCase("session") || field.getName().equalsIgnoreCase("field_1726")) {
-                sessionField = field;
-            }
-        }
+    public boolean login(Login loginData) {
         try {
-            if (sessionField == null) return false;
-            sessionField.setAccessible(true);
-            sessionField.set(minecraft, newSession);
-            sessionField.setAccessible(false);
-            return true;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean login(RequestTemplates.Login loginData) {
-        try {
-            if (loginData.username == null || loginData.username.isEmpty()) {
+            if (null == loginData.username || loginData.username.isEmpty()) {
                 return false;
-            } else if (loginData.password == null || loginData.password.isEmpty()) {
-                Session offlineSession = new Session(loginData.username,
+            } else if (null == loginData.password || loginData.password.isEmpty()) {
+                session = new Session(loginData.username,
                         UUID.nameUUIDFromBytes(loginData.username.getBytes()).toString(), "0", "legacy");
-                return setGameSession(offlineSession);
+                return true;
             } else {
-                YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication) new YggdrasilAuthenticationService(Proxy.NO_PROXY, "").createUserAuthentication(Agent.MINECRAFT);
+                UserAuthentication auth = new YggdrasilAuthenticationService(Proxy.NO_PROXY, "").createUserAuthentication(Agent.MINECRAFT);
                 auth.setUsername(loginData.username);
                 auth.setPassword(loginData.password);
                 try {
                     auth.logIn();
                 } catch (AuthenticationException e) {
-                    e.printStackTrace();
+                    LOGGER.warn("Online login failed, logging in offline.");
+                    Login offlineLogin = new Login();
+                    offlineLogin.username = COMPILE.matcher(loginData.username).replaceAll(Matcher.quoteReplacement(""));
+                    offlineLogin.password = "";
+                    login(offlineLogin);
                     return false;
                 }
-                Session onlineSession = new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
-                return setGameSession(onlineSession);
+                session = new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
+                return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getLocalizedMessage());
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "MinecraftCompatLayer{" +
+                "minecraft=" + minecraft.getName() +
+                ", session=" + session.getUuid() +
+                ", connection=" + connection.getAddress() +
+                '}';
     }
 }

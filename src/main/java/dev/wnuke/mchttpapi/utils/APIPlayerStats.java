@@ -10,6 +10,15 @@ public class APIPlayerStats {
         public float health;
         public float hunger;
         public float saturation;
+
+        @Override
+        public String toString() {
+            return "PlayerInfo{" +
+                    "health=" + health +
+                    ", hunger=" + hunger +
+                    ", saturation=" + saturation +
+                    '}';
+        }
     }
 
     public static class Position {
@@ -22,5 +31,24 @@ public class APIPlayerStats {
             this.y = y;
             this.z = z;
         }
+
+        @Override
+        public String toString() {
+            return "Position{" +
+                    "x=" + x +
+                    ", y=" + y +
+                    ", z=" + z +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "APIPlayerStats{" +
+                "name='" + name + '\'' +
+                ", uuid='" + uuid + '\'' +
+                ", player=" + player +
+                ", coordinates=" + coordinates +
+                '}';
     }
 }

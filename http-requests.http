@@ -1,15 +1,7 @@
-###
-POST http://localhost:8001/togglerender
-
-###
-POST http://localhost:8000/disconnect
-
-###
-
-POST http://localhost:10002/sendmsg
+POST http://localhost:8000/sendmsg
 Content-Type: application/json
 
-{"message": "@explore"}
+{"message": "test"}
 
 ###
 
@@ -32,7 +24,5 @@ Accept: application/json
 # curl "localhost:8000/chat"
 GET http://localhost:8000/chat
 Accept: application/json
-
-<> 2020-07-10T045412.200.json
 
 ###

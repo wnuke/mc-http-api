@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
+
 public class APIUtils {
 
     public static String parsePost(HttpExchange he) {
@@ -24,9 +26,11 @@ public class APIUtils {
         }
     }
 
-    public static void logHTTPRequest(String uri, boolean end) {
-        if (end) System.out.println("HTTP Exchanged closed.");
-        else System.out.println("HTTP Exchanged opened with URI \"" + uri + "\"");
+    public static void logHTTPRequest(HttpExchange he, boolean end) {
+        String uri = he.getRequestURI().getPath();
+        String requester = he.getRemoteAddress().getAddress().getHostAddress() + ":" + he.getRemoteAddress().getPort();
+        if (end) LOGGER.info("HTTP Exchanged with URI \"{}\" opened by {} has been closed.", uri, requester);
+        else LOGGER.info("HTTP Exchanged opened with URI \"{}\" opened by {}.", uri, requester);
     }
 
     public static void sendOkJsonResponse(String message, HttpExchange httpExchange) throws IOException {

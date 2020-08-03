@@ -1,6 +1,7 @@
 package dev.wnuke.mchttpapi.server;
 
 import com.sun.net.httpserver.HttpServer;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 import static dev.wnuke.mchttpapi.utils.APIUtils.logHTTPRequest;
 import static dev.wnuke.mchttpapi.utils.APIUtils.parsePost;
@@ -9,30 +10,38 @@ public abstract class JsonPOSTEndpoint {
     private final HttpServer server;
     private final String path;
 
-    public JsonPOSTEndpoint(HttpServer server, String path, boolean needsData) {
-        this.server = server;
-        this.path = path;
+    public JsonPOSTEndpoint(HttpServer httpServer, String requestPath, boolean needsData) {
+        server = httpServer;
+        path = requestPath;
         createContext(needsData);
     }
 
     public void createContext(boolean needsData) {
         server.createContext(path, (he -> {
-            logHTTPRequest(he.getRequestURI().getPath(), false);
+            logHTTPRequest(he, false);
             if ("POST".equals(he.getRequestMethod())) {
                 if (needsData) {
                     if (he.getRequestHeaders().containsKey("Content-Type")) {
-                        if (he.getRequestHeaders().get("Content-Type").get(0).equals("application/json")) {
-                            he.sendResponseHeaders(run(parsePost(he)), -1);
-                        } else he.sendResponseHeaders(415, -1);
-                    } else he.sendResponseHeaders(400, -1);
-                } else he.sendResponseHeaders(run(""), -1);
+                        if ("application/json".equals(he.getRequestHeaders().get("Content-Type").get(0))) {
+                            he.sendResponseHeaders(run(parsePost(he)), -1L);
+                        } else he.sendResponseHeaders(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.code(), -1L);
+                    } else he.sendResponseHeaders(HttpResponseStatus.BAD_REQUEST.code(), -1L);
+                } else he.sendResponseHeaders(run(""), -1L);
             } else {
-                he.sendResponseHeaders(405, -1);
+                he.sendResponseHeaders(HttpResponseStatus.METHOD_NOT_ALLOWED.code(), -1L);
             }
-            logHTTPRequest(he.getRequestURI().getPath(), true);
+            logHTTPRequest(he, true);
             he.close();
         }));
     }
 
     public abstract int run(String data);
+
+    @Override
+    public String toString() {
+        return "JsonPOSTEndpoint{" +
+                "server=" + server +
+                ", path='" + path + '\'' +
+                '}';
+    }
 }

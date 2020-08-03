@@ -18,7 +18,7 @@ import java.util.UUID;
 @Mixin(InGameHud.class)
 public class MixinInGameHud {
     @Inject(method = "addChatMessage", at = @At("HEAD"))
-    public void addChatMessage(MessageType type, Text text, UUID senderUuid, CallbackInfo ci) {
+    public void onChatMessage(MessageType type, Text text, UUID senderUuid, CallbackInfo ci) {
         String timeStamp = DateTimeFormatter
                 .ofPattern("[HH:mm:ss]")
                 .withZone(ZoneOffset.UTC)
