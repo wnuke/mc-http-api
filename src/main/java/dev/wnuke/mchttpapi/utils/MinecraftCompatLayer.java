@@ -30,7 +30,7 @@ public class MinecraftCompatLayer {
     private static final Pattern COMPILE = Pattern.compile("[^A-Za-z0-9]", Pattern.LITERAL);
     private MinecraftClient minecraft;
     private Session session;
-    private ClientConnection connection;
+    public ClientConnection connection;
 
     public MinecraftCompatLayer(MinecraftClient mc) {
         minecraft = mc;

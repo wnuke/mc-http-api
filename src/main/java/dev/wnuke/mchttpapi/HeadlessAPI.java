@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class HeadlessAPI implements ModInitializer {
     public static final ArrayList<String> chatMessages = new ArrayList<>(0);
     protected static APIServerThread api;
-    public MinecraftCompatLayer compatLayer;
+    public static MinecraftCompatLayer compatLayer;
     public static final Logger LOGGER = LogManager.getLogger();
 
     public void onInitialize() {
