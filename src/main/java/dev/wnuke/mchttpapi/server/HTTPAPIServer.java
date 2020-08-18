@@ -69,6 +69,13 @@ public enum HTTPAPIServer {
                 return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
             }
         };
+        new JsonPOSTEndpoint(server, "/logout", false) {
+            @Override
+            public int run(String data) {
+                compatLayer.logout();
+                return HttpResponseStatus.OK.code();
+            }
+        };
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {

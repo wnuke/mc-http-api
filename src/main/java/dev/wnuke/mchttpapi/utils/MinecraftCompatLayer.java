@@ -3,6 +3,7 @@ package dev.wnuke.mchttpapi.utils;
 import com.mojang.authlib.Agent;
 import com.mojang.authlib.UserAuthentication;
 import com.mojang.authlib.exceptions.AuthenticationException;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
@@ -25,14 +26,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
+import static dev.wnuke.mchttpapi.HeadlessAPI.startUser;
 
 
 public class MinecraftCompatLayer {
     private static final AtomicInteger CONNECTOR_THREADS_COUNT = new AtomicInteger(0);
     private static final Pattern UNREGEX = Pattern.compile("[^A-Za-z0-9]", Pattern.LITERAL);
+    public PropertyMap sessionProperties = new PropertyMap();
     public ClientConnection connection;
     private MinecraftClient minecraft;
-    private Session session;
+    public Session session;
 
     public MinecraftCompatLayer(MinecraftClient mc) {
         minecraft = mc;
@@ -120,9 +123,6 @@ public class MinecraftCompatLayer {
             minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
             String address = server.address;
             Integer port = server.port;
-            Session sessionToUse;
-            if (null != session) sessionToUse = session;
-            else sessionToUse = minecraft.getSession();
             Thread thread = new Thread("Server Connector #" + CONNECTOR_THREADS_COUNT.incrementAndGet()) {
                 public void run() {
                     try {
@@ -132,7 +132,7 @@ public class MinecraftCompatLayer {
                         connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> {
                         }));
                         connection.send(new HandshakeC2SPacket(address, port, NetworkState.LOGIN));
-                        connection.send(new LoginHelloC2SPacket(sessionToUse.getProfile()));
+                        connection.send(new LoginHelloC2SPacket(session.getProfile()));
                         LOGGER.info("Connected.");
                     } catch (UnknownHostException e) {
                         LOGGER.error("Connection to server failed. (Unknown Host)");
@@ -141,7 +141,6 @@ public class MinecraftCompatLayer {
                         LOGGER.error("Connection to server failed.", e);
                         disconnect();
                     }
-
                 }
             };
             thread.setUncaughtExceptionHandler(new UncaughtExceptionLogger(LOGGER));
@@ -184,12 +183,18 @@ public class MinecraftCompatLayer {
         return false;
     }
 
+    public void logout() {
+        disconnectFromServer();
+        login(startUser);
+    }
+
     @Override
     public String toString() {
         return "MinecraftCompatLayer{" +
-                "minecraft=" + minecraft.getName() +
-                ", session=" + session.getUuid() +
-                ", connection=" + connection.getAddress() +
+                "sessionProperties=" + sessionProperties +
+                ", connection=" + connection +
+                ", minecraft=" + minecraft +
+                ", session=" + session +
                 '}';
     }
 }

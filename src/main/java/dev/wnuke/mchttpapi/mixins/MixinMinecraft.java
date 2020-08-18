@@ -1,9 +1,12 @@
 package dev.wnuke.mchttpapi.mixins;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.PropertyMap;
 import dev.wnuke.mchttpapi.HeadlessAPI;
 import dev.wnuke.mchttpapi.utils.RunBooleanSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.util.Session;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,6 +41,20 @@ public abstract class MixinMinecraft {
                 MinecraftClient.getInstance().tick();
             }
         }
+    }
+
+    @Inject(method = "getSession", at = @At("HEAD"), cancellable = true)
+    public void getSession(CallbackInfoReturnable<? super Session> cir) {
+        cir.setReturnValue(HeadlessAPI.compatLayer.session);
+    }
+
+    @Inject(method = "getSessionProperties", at = @At("HEAD"), cancellable = true)
+    public void sessionProperties(CallbackInfoReturnable<? super PropertyMap> cir) {
+        if (HeadlessAPI.compatLayer.sessionProperties.isEmpty()) {
+            GameProfile gameProfile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(HeadlessAPI.compatLayer.session.getProfile(), false);
+            HeadlessAPI.compatLayer.sessionProperties.putAll(gameProfile.getProperties());
+        }
+        cir.setReturnValue(HeadlessAPI.compatLayer.sessionProperties);
     }
 
     @Inject(method = "isModded", at = @At("HEAD"), cancellable = true)

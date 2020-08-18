@@ -2,6 +2,7 @@ package dev.wnuke.mchttpapi;
 
 
 import dev.wnuke.mchttpapi.server.HTTPAPIServer;
+import dev.wnuke.mchttpapi.utils.Login;
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
@@ -9,13 +10,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class HeadlessAPI implements ModInitializer {
     public static final ArrayList<String> chatMessages = new ArrayList<>(0);
     public static final Logger LOGGER = LogManager.getLogger();
     public static MinecraftCompatLayer compatLayer;
     protected static APIServerThread api;
+    public static Login startUser;
 
     public static void startAPIServer(MinecraftCompatLayer compatLayerToUse) {
         api = APIServerThread.createAPIServerThread(compatLayerToUse);
@@ -25,6 +29,9 @@ public class HeadlessAPI implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Loading HeadlessAPI v1.0.0 by wnuke...");
         compatLayer = new MinecraftCompatLayer(MinecraftClient.getInstance());
+        startUser = new Login();
+        startUser.username = randomUsername();
+        compatLayer.login(startUser);
         startAPIServer(compatLayer);
         LOGGER.info("---------------------------------");
         LOGGER.info("*                               *");
@@ -33,11 +40,17 @@ public class HeadlessAPI implements ModInitializer {
         LOGGER.info("---------------------------------");
     }
 
-    @Override
-    public String toString() {
-        return "HeadlessAPI{" +
-                "compatLayer=" + compatLayer +
-                '}';
+    public static String randomUsername() {
+        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST".toCharArray();
+
+        StringBuilder randomString = new StringBuilder();
+        Random random = new SecureRandom();
+        for (int i = 0; 8 > i; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            randomString.append(c);
+        }
+
+        return randomString.toString();
     }
 
     public static class APIServerThread extends Thread {
@@ -67,6 +80,13 @@ public class HeadlessAPI implements ModInitializer {
                     "minecraftCompatLayer=" + minecraftCompatLayer +
                     '}';
         }
+    }
+
+    @Override
+    public String toString() {
+        return "HeadlessAPI{" +
+                "startUser=" + startUser +
+                '}';
     }
 }
 
