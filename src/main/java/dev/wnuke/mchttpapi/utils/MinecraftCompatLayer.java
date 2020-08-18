@@ -29,10 +29,10 @@ import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
 
 public class MinecraftCompatLayer {
     private static final AtomicInteger CONNECTOR_THREADS_COUNT = new AtomicInteger(0);
-    private static final Pattern COMPILE = Pattern.compile("[^A-Za-z0-9]", Pattern.LITERAL);
+    private static final Pattern UNREGEX = Pattern.compile("[^A-Za-z0-9]", Pattern.LITERAL);
+    public ClientConnection connection;
     private MinecraftClient minecraft;
     private Session session;
-    public ClientConnection connection;
 
     public MinecraftCompatLayer(MinecraftClient mc) {
         minecraft = mc;
@@ -129,7 +129,8 @@ public class MinecraftCompatLayer {
                         LOGGER.info("Connecting to {}:{}.", address, port);
                         InetAddress inetAddress = InetAddress.getByName(address);
                         connection = ClientConnection.connect(inetAddress, port, true);
-                        connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> { }));
+                        connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> {
+                        }));
                         connection.send(new HandshakeC2SPacket(address, port, NetworkState.LOGIN));
                         connection.send(new LoginHelloC2SPacket(sessionToUse.getProfile()));
                         LOGGER.info("Connected.");
@@ -169,7 +170,7 @@ public class MinecraftCompatLayer {
                 } catch (AuthenticationException e) {
                     LOGGER.warn("Online login failed, logging in offline.");
                     Login offlineLogin = new Login();
-                    offlineLogin.username = COMPILE.matcher(loginData.username).replaceAll(Matcher.quoteReplacement(""));
+                    offlineLogin.username = UNREGEX.matcher(loginData.username).replaceAll(Matcher.quoteReplacement(""));
                     offlineLogin.password = "";
                     login(offlineLogin);
                     return false;

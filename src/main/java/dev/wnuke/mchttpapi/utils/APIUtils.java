@@ -1,6 +1,7 @@
 package dev.wnuke.mchttpapi.utils;
 
 import com.sun.net.httpserver.HttpExchange;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,7 @@ import static dev.wnuke.mchttpapi.HeadlessAPI.LOGGER;
 
 public enum APIUtils {
     ;
+
     public static String parsePost(HttpExchange he) {
         try {
             InputStream input = he.getRequestBody();
@@ -23,7 +25,7 @@ public enum APIUtils {
             return sb.toString();
         } catch (IOException e) {
             LOGGER.warn(e.getLocalizedMessage());
-            return null;
+            return "";
         }
     }
 
@@ -37,7 +39,7 @@ public enum APIUtils {
     public static void sendOkJsonResponse(String message, HttpExchange httpExchange) throws IOException {
         byte[] messageBytes = (message + "\n").getBytes();
         httpExchange.getResponseHeaders().set("Content-Type", "application/json; charset=" + StandardCharsets.UTF_8);
-        httpExchange.sendResponseHeaders(200, messageBytes.length);
+        httpExchange.sendResponseHeaders(HttpResponseStatus.OK.code(), messageBytes.length);
         OutputStream output = httpExchange.getResponseBody();
         output.write(messageBytes);
         output.flush();

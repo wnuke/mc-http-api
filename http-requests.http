@@ -1,7 +1,9 @@
 POST http://localhost:8000/sendmsg
 Content-Type: application/json
 
-{"message": "@explore"}
+{
+  "message": "@explore"
+}
 
 ###
 
@@ -9,7 +11,7 @@ POST http://localhost:8000/connect
 Content-Type: application/json
 
 {
-  "address": "10.1.1.174",
+  "address": "blazenarchy.net",
   "port": 25565
 }
 

@@ -19,10 +19,12 @@ public class MixinWorldRenderer {
     public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
         ci.cancel();
     }
+
     @Inject(method = "processGlobalEvent", at = @At("HEAD"), cancellable = true)
     public void globalEvent(int eventId, BlockPos pos, int i, CallbackInfo ci) {
         ci.cancel();
     }
+
     @Inject(method = "processWorldEvent", at = @At("HEAD"), cancellable = true)
     public void worldEvent(PlayerEntity source, int eventId, BlockPos pos, int data, CallbackInfo ci) {
         ci.cancel();

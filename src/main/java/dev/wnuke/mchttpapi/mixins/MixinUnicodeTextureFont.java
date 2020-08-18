@@ -16,6 +16,7 @@ public class MixinUnicodeTextureFont {
         cir.setReturnValue(null);
         cir.cancel();
     }
+
     @Inject(method = "getGlyph", at = @At("HEAD"), cancellable = true)
     private void getGlyph(int i, CallbackInfoReturnable<RenderableGlyph> cir) {
         cir.setReturnValue(null);

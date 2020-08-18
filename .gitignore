@@ -3,4 +3,5 @@ run
 .gradle
 .DS_Store
 */*.DS_Store
+minecraft
 logs

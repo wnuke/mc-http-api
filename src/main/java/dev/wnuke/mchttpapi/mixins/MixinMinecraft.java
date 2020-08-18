@@ -16,9 +16,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraft {
     private static final float TPS = 20.0F;
+    private final RenderTickCounter renderTickCounter = new RenderTickCounter(TPS, 0L);
     @Shadow
     private ClientConnection connection;
-    private final RenderTickCounter renderTickCounter = new RenderTickCounter(TPS, 0L);
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void render(boolean tick, CallbackInfo ci) {
@@ -34,7 +34,7 @@ public abstract class MixinMinecraft {
                 connection = HeadlessAPI.compatLayer.connection;
             }
             MinecraftClient.getInstance().runTasks(new RunBooleanSupplier());
-            for(int j = 0; j < Math.min(10, k); ++j) {
+            for (int j = 0; j < Math.min(10, k); ++j) {
                 MinecraftClient.getInstance().tick();
             }
         }

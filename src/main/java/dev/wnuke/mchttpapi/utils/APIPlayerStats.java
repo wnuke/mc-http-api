@@ -6,6 +6,16 @@ public class APIPlayerStats {
     public PlayerInfo player;
     public Position coordinates;
 
+    @Override
+    public String toString() {
+        return "APIPlayerStats{" +
+                "name='" + name + '\'' +
+                ", uuid='" + uuid + '\'' +
+                ", player=" + player +
+                ", coordinates=" + coordinates +
+                '}';
+    }
+
     public static class PlayerInfo {
         public float health;
         public float hunger;
@@ -40,15 +50,5 @@ public class APIPlayerStats {
                     ", z=" + z +
                     '}';
         }
-    }
-
-    @Override
-    public String toString() {
-        return "APIPlayerStats{" +
-                "name='" + name + '\'' +
-                ", uuid='" + uuid + '\'' +
-                ", player=" + player +
-                ", coordinates=" + coordinates +
-                '}';
     }
 }

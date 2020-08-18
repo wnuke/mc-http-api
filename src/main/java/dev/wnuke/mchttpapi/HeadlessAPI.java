@@ -13,9 +13,14 @@ import java.util.ArrayList;
 
 public class HeadlessAPI implements ModInitializer {
     public static final ArrayList<String> chatMessages = new ArrayList<>(0);
-    protected static APIServerThread api;
-    public static MinecraftCompatLayer compatLayer;
     public static final Logger LOGGER = LogManager.getLogger();
+    public static MinecraftCompatLayer compatLayer;
+    protected static APIServerThread api;
+
+    public static void startAPIServer(MinecraftCompatLayer compatLayerToUse) {
+        api = APIServerThread.createAPIServerThread(compatLayerToUse);
+        api.start();
+    }
 
     public void onInitialize() {
         LOGGER.info("Loading HeadlessAPI v1.0.0 by wnuke...");
@@ -28,9 +33,11 @@ public class HeadlessAPI implements ModInitializer {
         LOGGER.info("---------------------------------");
     }
 
-    public static void startAPIServer(MinecraftCompatLayer compatLayerToUse) {
-        api = APIServerThread.createAPIServerThread(compatLayerToUse);
-        api.start();
+    @Override
+    public String toString() {
+        return "HeadlessAPI{" +
+                "compatLayer=" + compatLayer +
+                '}';
     }
 
     public static class APIServerThread extends Thread {
@@ -60,13 +67,6 @@ public class HeadlessAPI implements ModInitializer {
                     "minecraftCompatLayer=" + minecraftCompatLayer +
                     '}';
         }
-    }
-
-    @Override
-    public String toString() {
-        return "HeadlessAPI{" +
-                "compatLayer=" + compatLayer +
-                '}';
     }
 }
 
