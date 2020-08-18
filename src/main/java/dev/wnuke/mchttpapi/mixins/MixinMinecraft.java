@@ -5,7 +5,6 @@ import dev.wnuke.mchttpapi.utils.RunBooleanSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,8 +25,7 @@ public abstract class MixinMinecraft {
         MinecraftClient.getInstance().skipGameRender = true;
         if (null != MinecraftClient.getInstance().player && null != HeadlessAPI.compatLayer.connection) {
             if (1.0F > MinecraftClient.getInstance().player.getHealth() || MinecraftClient.getInstance().player.isDead()) {
-                HeadlessAPI.compatLayer.connection.send(new ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.PERFORM_RESPAWN));
-                MinecraftClient.getInstance().player.requestRespawn();
+                HeadlessAPI.compatLayer.respawn();
             }
         }
         int k = renderTickCounter.beginRenderTick(Util.getMeasuringTimeMs());
