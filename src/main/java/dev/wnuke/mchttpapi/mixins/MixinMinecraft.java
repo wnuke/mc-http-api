@@ -10,7 +10,6 @@ import net.minecraft.client.util.Session;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,22 +19,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinMinecraft {
     private static final float TPS = 20.0F;
     private final RenderTickCounter renderTickCounter = new RenderTickCounter(TPS, 0L);
-    @Shadow
-    private ClientConnection connection;
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void render(boolean tick, CallbackInfo ci) {
         MinecraftClient.getInstance().skipGameRender = true;
-        if (null != MinecraftClient.getInstance().player && null != HeadlessAPI.compatLayer.connection) {
-            if (1.0F > MinecraftClient.getInstance().player.getHealth() || MinecraftClient.getInstance().player.isDead()) {
-                HeadlessAPI.compatLayer.respawn();
+        if (null != HeadlessAPI.compatLayer) {
+            HeadlessAPI.compatLayer.respawn();
+            ClientConnection connection = HeadlessAPI.compatLayer.connection;
+            if (null != connection) {
+                if (connection.isOpen()) {
+                    connection.tick();
+                } else {
+                    connection.handleDisconnection();
+                }
             }
         }
-        int k = renderTickCounter.beginRenderTick(Util.getMeasuringTimeMs());
         if (tick) {
-            if (null != HeadlessAPI.compatLayer) {
-                connection = HeadlessAPI.compatLayer.connection;
-            }
+            int k = renderTickCounter.beginRenderTick(Util.getMeasuringTimeMs());
             MinecraftClient.getInstance().runTasks(new RunBooleanSupplier());
             for (int j = 0; j < Math.min(10, k); ++j) {
                 MinecraftClient.getInstance().tick();

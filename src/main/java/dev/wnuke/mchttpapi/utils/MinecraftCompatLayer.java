@@ -2,7 +2,6 @@ package dev.wnuke.mchttpapi.utils;
 
 import com.mojang.authlib.Agent;
 import com.mojang.authlib.UserAuthentication;
-import com.mojang.authlib.exceptions.AuthenticationException;
 import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.minecraft.client.MinecraftClient;
@@ -53,9 +52,12 @@ public class MinecraftCompatLayer {
 
     public void respawn() {
         minecraft.execute(() -> {
-            assert null != minecraft.player;
-            minecraft.player.requestRespawn();
-            minecraft.openScreen(null);
+            if (null != minecraft.player) {
+                if (1.0F > minecraft.player.getHealth() || minecraft.player.isDead()) {
+                    minecraft.player.requestRespawn();
+                    minecraft.openScreen(null);
+                }
+            }
         });
     }
 
@@ -81,21 +83,10 @@ public class MinecraftCompatLayer {
     public boolean sendChatMessage(String message) {
         try {
             if (null != minecraft.player) {
-                LOGGER.info("Sending message \"{}\" as \"{}\"", message, minecraft.player.getDisplayName());
+                LOGGER.info("sending \"{}\" as \"{}\"", message, minecraft.player.getDisplayName().asString());
                 connection.send(new ChatMessageC2SPacket(message));
                 return true;
             }
-        } catch (Exception e) {
-            LOGGER.warn(e.getLocalizedMessage());
-        }
-        return false;
-    }
-
-    public boolean disconnectFromServer() {
-        try {
-            LOGGER.info("Disconnecting from server {}", null != minecraft.getCurrentServerEntry() ? minecraft.getCurrentServerEntry().address : "");
-            disconnect();
-            return true;
         } catch (Exception e) {
             LOGGER.warn(e.getLocalizedMessage());
         }
@@ -123,22 +114,18 @@ public class MinecraftCompatLayer {
             minecraft.setCurrentServerEntry(new ServerInfo("server", server.address, false));
             String address = server.address;
             Integer port = server.port;
-            Thread thread = new Thread("Server Connector #" + CONNECTOR_THREADS_COUNT.incrementAndGet()) {
+            Thread thread = new Thread("Server Connector " + CONNECTOR_THREADS_COUNT.incrementAndGet()) {
                 public void run() {
                     try {
-                        LOGGER.info("Connecting to {}:{}.", address, port);
+                        LOGGER.info("connecting to {}:{}", address, port);
                         InetAddress inetAddress = InetAddress.getByName(address);
                         connection = ClientConnection.connect(inetAddress, port, true);
-                        connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, (text) -> {
-                        }));
+                        connection.setPacketListener(new ClientLoginNetworkHandler(connection, minecraft, null, LOGGER::info));
                         connection.send(new HandshakeC2SPacket(address, port, NetworkState.LOGIN));
                         connection.send(new LoginHelloC2SPacket(session.getProfile()));
-                        LOGGER.info("Connected.");
+                        LOGGER.info("connected");
                     } catch (UnknownHostException e) {
-                        LOGGER.error("Connection to server failed. (Unknown Host)");
-                        disconnect();
-                    } catch (Exception e) {
-                        LOGGER.error("Connection to server failed.", e);
+                        LOGGER.error("{}: unknown host", address, e);
                         disconnect();
                     }
                 }
@@ -166,8 +153,8 @@ public class MinecraftCompatLayer {
                 auth.setPassword(loginData.password);
                 try {
                     auth.logIn();
-                } catch (AuthenticationException e) {
-                    LOGGER.warn("Online login failed, logging in offline.");
+                } catch (Exception e) {
+                    LOGGER.warn("online login failed, switching to offline mode");
                     Login offlineLogin = new Login();
                     offlineLogin.username = UNREGEX.matcher(loginData.username).replaceAll(Matcher.quoteReplacement(""));
                     offlineLogin.password = "";
@@ -184,7 +171,7 @@ public class MinecraftCompatLayer {
     }
 
     public void logout() {
-        disconnectFromServer();
+        disconnect();
         login(startUser);
     }
 

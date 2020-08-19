@@ -2,7 +2,7 @@ POST http://localhost:8000/sendmsg
 Content-Type: application/json
 
 {
-  "message": "@explore"
+  "message": "Test"
 }
 
 ###

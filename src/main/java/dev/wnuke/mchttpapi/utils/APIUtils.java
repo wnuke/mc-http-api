@@ -29,11 +29,10 @@ public enum APIUtils {
         }
     }
 
-    public static void logHTTPRequest(HttpExchange he, boolean end) {
+    public static void logHTTPRequest(HttpExchange he) {
         String uri = he.getRequestURI().getPath();
-        String requester = he.getRemoteAddress().getAddress().getHostAddress() + ":" + he.getRemoteAddress().getPort();
-        if (end) LOGGER.info("HTTP Connection opened by {} to {} has been closed.", requester, uri);
-        else LOGGER.info("HTTP Connection opened by {} to {}.", requester, uri);
+        String requester = he.getRemoteAddress().getAddress().getHostAddress();
+        LOGGER.info("{} requested {}", requester, uri);
     }
 
     public static void sendOkJsonResponse(String message, HttpExchange httpExchange) throws IOException {

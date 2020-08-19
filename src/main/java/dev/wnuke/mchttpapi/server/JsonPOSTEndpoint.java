@@ -18,7 +18,7 @@ public abstract class JsonPOSTEndpoint {
 
     public void createContext(boolean needsData) {
         server.createContext(path, (he -> {
-            logHTTPRequest(he, false);
+            logHTTPRequest(he);
             if ("POST".equals(he.getRequestMethod())) {
                 if (needsData) {
                     if (he.getRequestHeaders().containsKey("Content-Type")) {
@@ -30,7 +30,6 @@ public abstract class JsonPOSTEndpoint {
             } else {
                 he.sendResponseHeaders(HttpResponseStatus.METHOD_NOT_ALLOWED.code(), -1L);
             }
-            logHTTPRequest(he, true);
             he.close();
         }));
     }

@@ -22,15 +22,21 @@ public enum HTTPAPIServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         new JsonGETEndpoint(server, "/chat") {
             @Override
-            public Pair<String, Integer> run() {
+            public String run() {
                 LOGGER.info("Sending chat history to ");
-                return new Pair<>(gson.toJson(chatMessages), HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+                return gson.toJson(chatMessages);
             }
         };
         new JsonGETEndpoint(server, "/player") {
             @Override
-            public Pair<String, Integer> run() {
-                return new Pair<>(gson.toJson(compatLayer.getPlayerStats()), HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            public String run() {
+                return gson.toJson(compatLayer.getPlayerStats());
+            }
+        };
+        new JsonGETEndpoint(server, "/session") {
+            @Override
+            public String run() {
+                return gson.toJson(compatLayer.session);
             }
         };
         new JsonPOSTEndpoint(server, "/sendmsg", true) {
@@ -48,7 +54,6 @@ public enum HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/connect", true) {
             @Override
             public int run(String data) {
-                compatLayer.disconnectFromServer();
                 ServerConnect serverConnect = gson.fromJson(data, ServerConnect.class);
                 if (null == serverConnect || null == serverConnect.address)
                     return HttpResponseStatus.BAD_REQUEST.code();
@@ -79,10 +84,8 @@ public enum HTTPAPIServer {
         new JsonPOSTEndpoint(server, "/disconnect", false) {
             @Override
             public int run(String data) {
-                if (compatLayer.disconnectFromServer()) {
-                    return HttpResponseStatus.OK.code();
-                }
-                return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
+                compatLayer.disconnect();
+                return HttpResponseStatus.OK.code();
             }
         };
         server.setExecutor(null);
