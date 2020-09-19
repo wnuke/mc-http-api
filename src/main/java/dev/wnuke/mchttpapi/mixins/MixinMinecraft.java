@@ -2,7 +2,8 @@ package dev.wnuke.mchttpapi.mixins;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
-import dev.wnuke.mchttpapi.HeadlessAPI;
+import dev.wnuke.mchttpapi.MCHTTPAPI;
+import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer;
 import dev.wnuke.mchttpapi.utils.RunBooleanSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderTickCounter;
@@ -22,10 +23,12 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void render(boolean tick, CallbackInfo ci) {
+        MinecraftCompatLayer compatLayer = MCHTTPAPI.INSTANCE.getCompatLayer();
+        if (MinecraftClient.getInstance().getWindow().shouldClose()) MinecraftClient.getInstance().scheduleStop();
         MinecraftClient.getInstance().skipGameRender = true;
-        if (null != HeadlessAPI.compatLayer) {
-            HeadlessAPI.compatLayer.respawn();
-            ClientConnection connection = HeadlessAPI.compatLayer.connection;
+        if (null != compatLayer) {
+            compatLayer.respawn();
+            ClientConnection connection = compatLayer.getConnection();
             if (null != connection) {
                 if (connection.isOpen()) {
                     connection.tick();
@@ -41,20 +44,24 @@ public abstract class MixinMinecraft {
                 MinecraftClient.getInstance().tick();
             }
         }
+        ci.cancel();
     }
 
     @Inject(method = "getSession", at = @At("HEAD"), cancellable = true)
     public void getSession(CallbackInfoReturnable<? super Session> cir) {
-        cir.setReturnValue(HeadlessAPI.compatLayer.session);
+        cir.setReturnValue(MCHTTPAPI.INSTANCE.getCompatLayer().getSession());
     }
 
     @Inject(method = "getSessionProperties", at = @At("HEAD"), cancellable = true)
     public void sessionProperties(CallbackInfoReturnable<? super PropertyMap> cir) {
-        if (HeadlessAPI.compatLayer.sessionProperties.isEmpty()) {
-            GameProfile gameProfile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(HeadlessAPI.compatLayer.session.getProfile(), false);
-            HeadlessAPI.compatLayer.sessionProperties.putAll(gameProfile.getProperties());
+        MinecraftCompatLayer compatLayer = MCHTTPAPI.INSTANCE.getCompatLayer();
+        if (null != compatLayer) {
+            if (compatLayer.getSessionProperties().isEmpty() && null != compatLayer.getSession()) {
+                GameProfile gameProfile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(compatLayer.getSession().getProfile(), false);
+                compatLayer.getSessionProperties().putAll(gameProfile.getProperties());
+            }
+            cir.setReturnValue(compatLayer.getSessionProperties());
         }
-        cir.setReturnValue(HeadlessAPI.compatLayer.sessionProperties);
     }
 
     @Inject(method = "isModded", at = @At("HEAD"), cancellable = true)

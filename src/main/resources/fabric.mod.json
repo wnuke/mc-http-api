@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "mchttpapi",
+  "id": "id",
   "version": "${version}",
   "name": "MC HTTP API",
   "description": "An HTTP API for Minecraft.",
@@ -15,16 +15,20 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.wnuke.mchttpapi.HeadlessAPI"
+      {
+        "adapter": "kotlin",
+        "value": "dev.wnuke.mchttpapi.MCHTTPAPI"
+      }
     ]
   },
-  "mixins": [
-    "mixins.mchttpapi.json"
-  ],
   "depends": {
-    "fabricloader": ">=0.7.4",
-    "minecraft": "1.16.x"
+    "fabricloader": ">=0.9.3+build.207",
+    "fabric-language-kotlin": ">=1.4+build.1",
+    "fabric": ">=0.21.0+build.407-1.16"
   },
+  "mixins": [
+    "mixins.json"
+  ],
   "suggests": {
     "flamingo": "*"
   }

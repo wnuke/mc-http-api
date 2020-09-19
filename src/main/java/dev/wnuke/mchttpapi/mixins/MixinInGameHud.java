@@ -1,6 +1,6 @@
 package dev.wnuke.mchttpapi.mixins;
 
-import dev.wnuke.mchttpapi.HeadlessAPI;
+import dev.wnuke.mchttpapi.MCHTTPAPI;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,6 +24,6 @@ public class MixinInGameHud {
                 .withZone(ZoneOffset.UTC)
                 .format(Instant.now());
 
-        HeadlessAPI.chatMessages.add(timeStamp + " " + COMPILE.matcher(packet.getMessage().asString()).replaceAll(""));
+        MCHTTPAPI.INSTANCE.getChatMessages().add(timeStamp + " " + COMPILE.matcher(packet.getMessage().asString()).replaceAll(""));
     }
 }

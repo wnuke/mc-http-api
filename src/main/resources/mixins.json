@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "dev.wnuke.mchttpapi.mixins",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_14",
   "verbose": false,
   "injectors": {
     "maxShiftBy": 2
