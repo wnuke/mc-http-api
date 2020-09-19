@@ -1,6 +1,7 @@
 package dev.wnuke.mchttpapi.server
 
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer
+import dev.wnuke.mchttpapi.server.HTTPAPIServer
 import java.io.IOException
 import kotlin.system.exitProcess
 
