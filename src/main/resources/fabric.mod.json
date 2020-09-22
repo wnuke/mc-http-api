@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "id",
-  "version": "${version}",
+  "id": "mchttpapi",
+  "version": "2.0.0",
   "name": "MC HTTP API",
   "description": "An HTTP API for Minecraft.",
   "authors": [

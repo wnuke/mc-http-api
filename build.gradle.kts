@@ -6,6 +6,7 @@ plugins {
 }
 
 val modid = "mchttpapi"
+val ktorVersion = "1.4.0"
 val kotlinVersion = "1.4.0+build.1"
 val fabricApiVersion = "0.21.0+build.407-1.16"
 val fabricLoaderVersion = "0.9.3+build.207"
@@ -26,14 +27,18 @@ base {
 }
 
 dependencies {
-    minecraft(group = "com.mojang", name = "minecraft", version = "1.16.3")
-    mappings(group = "net.fabricmc", name = "yarn", version = "1.16.3+build.11", classifier = "v2")
+    minecraft("com.mojang:minecraft:1.16.3")
+    mappings("net.fabricmc:yarn:1.16.3+build.11:v2")
 
-    modImplementation(group = "net.fabricmc", name = "fabric-loader", version = fabricLoaderVersion)
-    modImplementation(group = "net.fabricmc.fabric-api", name = "fabric-api", version = fabricApiVersion)
+    modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
-    modImplementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version = kotlinVersion)
-    modImplementation(group = "net.fabricmc", name = "fabric-language-kotlin", version = kotlinVersion)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    implementation("net.fabricmc:fabric-language-kotlin:$kotlinVersion")
+
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
 }
 
 var shadowOut = file("build/libs/$modid-$version-shadow.jar")
@@ -60,9 +65,5 @@ tasks {
     named<ProcessResources>("processResources") {
         include("fabric.mod.json")
         include("mixins.json")
-        filesMatching("fabric.mod.json") {
-            expand("version" to version)
-            expand("id" to modid)
-        }
     }
 }

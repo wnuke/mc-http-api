@@ -1,6 +1,6 @@
 package dev.wnuke.mchttpapi
 
-import dev.wnuke.mchttpapi.server.APIServerThread
+import dev.wnuke.mchttpapi.server.HTTPAPIServer
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.MinecraftClient
@@ -17,7 +17,7 @@ object MCHTTPAPI : ModInitializer {
             exitProcess(1)
         }
         compatLayer = MinecraftCompatLayer(MinecraftClient.getInstance())
-        compatLayer?.let { APIServerThread(it).start() }
+        compatLayer?.let { HTTPAPIServer(it) }
         println("MC HTTP API loaded!")
     }
 }
