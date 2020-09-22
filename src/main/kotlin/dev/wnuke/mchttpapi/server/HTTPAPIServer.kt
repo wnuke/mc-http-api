@@ -2,10 +2,7 @@ package dev.wnuke.mchttpapi.server
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import dev.wnuke.mchttpapi.MCHTTPAPI.chatMessages
-import dev.wnuke.mchttpapi.utils.ChatMessage
-import dev.wnuke.mchttpapi.utils.Login
 import dev.wnuke.mchttpapi.utils.MinecraftCompatLayer
-import dev.wnuke.mchttpapi.utils.ServerConnect
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*

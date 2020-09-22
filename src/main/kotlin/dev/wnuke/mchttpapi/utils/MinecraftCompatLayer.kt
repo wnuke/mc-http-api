@@ -3,6 +3,9 @@ package dev.wnuke.mchttpapi.utils
 import com.mojang.authlib.Agent
 import com.mojang.authlib.properties.PropertyMap
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService
+import dev.wnuke.mchttpapi.server.Login
+import dev.wnuke.mchttpapi.server.PlayerInfo
+import dev.wnuke.mchttpapi.server.ServerConnect
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientLoginNetworkHandler
 import net.minecraft.client.network.ServerInfo
