@@ -1,3 +1,4 @@
+[![Discord](https://img.shields.io/discord/745728805678874800?logo=discord)](https://discord.gg/MwBvhEz)
 # MC HTTP API
 
 An HTTP API for controlling Minecraft, also cancels most render/resource loading methods. Designed for use in the Docker MC project
