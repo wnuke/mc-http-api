@@ -1,4 +1,5 @@
 [![Discord](https://img.shields.io/discord/745728805678874800?logo=discord)](https://discord.gg/MwBvhEz)
+[![build](https://github.com/wnuke-dev/mc-http-api/workflows/Java%20CI%20with%20Gradle/badge.svg)]((https://github.com/wnuke-dev/mc-http-api/actions?query=workflow%3A%22Java%20CI%20with%20Gradle%22))
 # MC HTTP API
 
 An HTTP API for controlling Minecraft, also cancels most render/resource loading methods. Designed for use in the Docker MC project
