@@ -4,7 +4,7 @@
 
 An HTTP API for controlling Minecraft, also cancels most render/resource loading methods. Designed for use in the Docker MC project
 
-## Setup for developpers
+## Setup for developers
 
 
 Get access to the repo by asking wnuke (wnuke#1010 on Discord). Download the source code:
